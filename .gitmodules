@@ -1,3 +1,9 @@
 [submodule "cairo_contracts"]
 	path = contracts/lib/cairo_contracts
 	url = https://github.com/OpenZeppelin/cairo-contracts
+[submodule "mock_everai/lib/forge-std"]
+	path = mock_everai/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "mock_everai/lib/openzeppelin-contracts"]
+	path = mock_everai/lib/openzeppelin-contracts
+	url = https://github.com/Openzeppelin/openzeppelin-contracts
