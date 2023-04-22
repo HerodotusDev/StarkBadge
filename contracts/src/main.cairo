@@ -5,6 +5,8 @@ from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.token.erc721.library import ERC721
 
+from src.interfaces.IFactsRegistry import IFactsRegistry, StorageSlot
+
 //
 // Constructor
 //
