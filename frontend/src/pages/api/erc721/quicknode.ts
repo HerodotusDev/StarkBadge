@@ -67,6 +67,7 @@ export const getCurrentBlockNum = async () => {
 
 
   const data: any = await req.json()
+  console.log()
   return parseInt(data.result, 16)
 }
 

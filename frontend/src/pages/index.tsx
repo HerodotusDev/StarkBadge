@@ -16,10 +16,16 @@ import {
 
 import { ConnectWallet } from "@/components/ConnectWallet";
 import { Account, Contract, Provider, ProviderInterface } from "starknet";
+import axios from "axios";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
+  const onClick = async () => {
+    const res = await axios.get("/api/test");
+    console.log(res);
+    console.log("hihi");
+  };
   return (
     <>
       <div>
@@ -29,6 +35,8 @@ export default function Home() {
         <div>
           <ConnectWallet />
         </div>
+
+        <button onClick={onClick}>click</button>
       </div>
     </>
   );
