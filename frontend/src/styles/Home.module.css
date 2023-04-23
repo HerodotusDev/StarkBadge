@@ -73,6 +73,12 @@
   border: 4px solid #ff875b
 }
 
+.selected {
+  cursor: pointer;
+  border: 4px solid #ff875b
+}
+
+
 .description {
   display: inherit;
   justify-content: inherit;

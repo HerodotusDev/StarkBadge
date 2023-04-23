@@ -76,6 +76,11 @@ export default function Home() {
                   await handleSelection(parseInt(nft.id.tokenId))
                 }>
                 <Image
+                  className={
+                    parseInt(nft.id.tokenId) === selectedTokenId
+                      ? styles.selected
+                      : undefined
+                  }
                   src={nft.metadata.image}
                   alt="pic"
                   width={100}
