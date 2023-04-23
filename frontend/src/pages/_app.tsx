@@ -10,7 +10,7 @@ import { createClient, configureChains, WagmiConfig, goerli } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
 import { StarknetConfig, InjectedConnector } from "@starknet-react/core";
 
-const { chains, provider, webSocketProvider } = configureChains(
+export const { chains, provider, webSocketProvider } = configureChains(
   [goerli],
   [publicProvider()]
 );

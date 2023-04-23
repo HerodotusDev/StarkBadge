@@ -7,6 +7,72 @@
   min-height: 100vh;
 }
 
+.explanation {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.explanation > div{
+  display: flex;
+  justify-content: center;
+}
+
+.explanation > button {
+  background: #ff875b;
+  padding: 1em 2em;
+  border-radius: 30px;
+  font-weight: bold;
+  margin: 1em;
+
+}
+
+
+.wrappedNFTs {
+
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: 26px;
+  border: 2px solid #383838;
+  padding: 2em;
+  margin: 1em;
+  background: #1d1d1d;
+  justify-content: center;
+  align-items: center;
+  gap: 2em;
+}
+
+.proofBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.proofBtn > div {
+
+  font-size: large;
+  font-weight: 900;
+}
+
+.proofBtn > button {
+  cursor: pointer;
+  background: #ff875b;
+  padding: 1em 3em;
+  border-radius: 27px;
+  font-size: large;
+  font-weight: 900;
+}
+
+.wrappedNFTs > div > img {
+  border-radius: 26px;
+}
+
+.wrappedNFTs > div > img:hover {
+  cursor: pointer;
+  border: 4px solid #ff875b
+}
+
 .description {
   display: inherit;
   justify-content: inherit;

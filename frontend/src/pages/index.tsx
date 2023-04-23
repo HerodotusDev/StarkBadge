@@ -5,19 +5,29 @@ import styles from "@/styles/Home.module.css";
 
 // EVM
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import {
+  useAccount,
+  useContract,
+  useContractWrite,
+  usePrepareContractWrite,
+  useSigner,
+} from "wagmi";
 
 //starknet
 import {
   useAccount as useStarknetAccount,
   useConnectors,
   useContract as useStarknetContract,
+  useWaitForTransaction,
 } from "@starknet-react/core";
 
 import { ConnectWallet } from "@/components/ConnectWallet";
 import { Account, Contract, Provider, ProviderInterface } from "starknet";
-import axios from "axios";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
+import { everaiDuoABI } from "@/shared/everaiDuo";
+import { MintNFT } from "@/components/MintNFT";
+import { handleGenerateProof, handleOwnedNFTs } from "@/shared/axios";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,26 +35,25 @@ export default function Home() {
   const { address, isConnected } = useAccount();
   const [ownednfts, setOwnedNfts] = useState<any[]>();
   const [selectedTokenId, setSelectedTokenId] = useState<number>();
-  const onClick = async () => {
-    const res = await axios.post("/api/everai", {
-      addr: address,
-      tokenId: selectedTokenId,
-    });
-    console.log(res);
-    console.log("hihi");
-  };
 
-  const onClick1 = async () => {
-    const res = await axios.get("/api/ownednfts?addr=" + address);
-    console.log(res.data.nftList);
-    setOwnedNfts(res.data.nftList);
-    console.log("hihi");
+  const updateOwnedNFT = (result: any) => {
+    console.log(result);
+    setOwnedNfts(result);
   };
 
   const handleSelection = async (tokenId: any) => {
     console.log(tokenId);
     setSelectedTokenId(tokenId);
   };
+
+  const updateNFTState = async () => {
+    const res = await handleOwnedNFTs(address as string);
+    setOwnedNfts(res);
+  };
+
+  useEffect(() => {
+    updateNFTState();
+  }, [isConnected]);
 
   return (
     <>
@@ -55,28 +64,40 @@ export default function Home() {
         <div>
           <ConnectWallet />
         </div>
-        <button onClick={onClick1}>getNFTs</button>
-        {isConnected &&
-          ownednfts?.map((nft) => (
-            <div
-              key={nft.id.tokenId}
+
+        <MintNFT stateChanger={setOwnedNfts} />
+
+        <div className={styles.wrappedNFTs}>
+          {isConnected &&
+            ownednfts?.map((nft) => (
+              <div
+                key={nft.id.tokenId}
+                onClick={async () =>
+                  await handleSelection(parseInt(nft.id.tokenId))
+                }>
+                <Image
+                  src={nft.metadata.image}
+                  alt="pic"
+                  width={100}
+                  height={100}
+                />
+                <div>{nft.title}</div>
+              </div>
+            ))}
+        </div>
+
+        <div className={styles.proofBtn}>
+          {selectedTokenId ? (
+            <button
               onClick={async () =>
-                await handleSelection(parseInt(nft.id.tokenId))
+                await handleGenerateProof(address as string, selectedTokenId)
               }>
-              <Image
-                src={nft.metadata.image}
-                alt="pic"
-                width={100}
-                height={100}
-              />
-              <div>{nft.title}</div>
-            </div>
-          ))}
-        {selectedTokenId && (
-          <button onClick={onClick}>
-            Generate Proof of Ownership of {selectedTokenId}
-          </button>
-        )}
+              Generate Proof of Ownership of {selectedTokenId}
+            </button>
+          ) : (
+            <div>Click NFT you want to generate proof of ownership</div>
+          )}
+        </div>
       </div>
     </>
   );
