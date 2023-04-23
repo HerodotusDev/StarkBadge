@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { herodotusProof, proofOfOwnership, starknetVerify } from '../erc721/proofs'
 import { getCurrentBlockNum } from '../erc721/quicknode'
+import { getTokenIds } from '../erc721/alchemy'
 type ReturnData = {
   coupons: any
 }
@@ -12,15 +13,16 @@ let contract_data = {
 }
 
 const post = async (req: NextApiRequest, res: NextApiResponse<any>) => {
-  const address = req.body.addr as string
-  const token_id = req.body.token_id as number
+const address = req.body.addr as string
+const token_id = req.body.tokenId as number
+
+console.log(address,token_id)
   // get latest block number
   contract_data.proof_blocknumber = await getCurrentBlockNum()
-
   console.log(contract_data.proof_blocknumber)
 
   //get proof of ownership of everai
-  const proofOwnership = await proofOfOwnership(address,token_id, contract_data.address, contract_data.proof_blocknumber, contract_data.mapping_storage_slot)
+  const proofOwnership = await proofOfOwnership(address, token_id, contract_data.address, contract_data.proof_blocknumber, contract_data.mapping_storage_slot)
   if (!proofOwnership) return res.status(500).json([])
   console.log(proofOwnership,"proofOwnership")
   //generate check user's proof and validate it send it to factregistery
