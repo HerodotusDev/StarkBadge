@@ -3,10 +3,9 @@ import { ethGetProof, ethGetStorageAt, getCurrentBlockNum } from './quicknode'
 import { Data } from "../utils/data"
 import { BigNumber } from "ethers"
 
-
-// proof of ownership
-
-export const proofofOwnership = async (address: string, contract_address: string, block_number: number, storage_slot_balance: number) => {
+export const proofOfOwnership = async (address:string, token_id: number, contract_address: string, block_number: number, mapping_storage_slot: number) => {
+  
+ 
   /*
   const blocks_lookup = 1000
   const creation_block = await getTxBlockNum(contract_creation_tx)
@@ -14,142 +13,142 @@ export const proofofOwnership = async (address: string, contract_address: string
   const txs = await getTxsInBlockInterval(creation_block, creation_block + blocks_lookup, contract_address, address)
   */
 
-  //for (const tx of txs) {
+  //TODO
   const balance_slot_keccak = ethers.utils.keccak256(
     ethers.utils.concat([
-      ethers.utils.zeroPad(address, 32),
       ethers.utils.defaultAbiCoder.encode(
         ['uint256'],
-        [storage_slot_balance]
-      )
-    ])
-  )
-
-  const balance = parseInt(await ethGetStorageAt(contract_address, balance_slot_keccak, block_number), 16)
-  if (balance > 0) {
-    //return { blockNum: tx.blockNumber, slot: balance_slot_keccak }
-    return { blockNum: block_number, slot: balance_slot_keccak }
-  }
-  //}
-
-  return null
-}
-
-
-// prev code
-
-export const proofOfOG = async (address: string, contract_address: string, block_number: number, storage_slot_balance: number) => {
-  /*
-  const blocks_lookup = 1000
-  const creation_block = await getTxBlockNum(contract_creation_tx)
-  const creation_block = block_number
-  const txs = await getTxsInBlockInterval(creation_block, creation_block + blocks_lookup, contract_address, address)
-  */
-
-  //for (const tx of txs) {
-  const balance_slot_keccak = ethers.utils.keccak256(
-    ethers.utils.concat([
-      ethers.utils.zeroPad(address, 32),
+        [token_id]
+      ),
       ethers.utils.defaultAbiCoder.encode(
         ['uint256'],
-        [storage_slot_balance]
+        [mapping_storage_slot]
       )
     ])
-  )
+  ) 
 
-  const balance = parseInt(await ethGetStorageAt(contract_address, balance_slot_keccak, block_number), 16)
-  if (balance > 0) {
-    //return { blockNum: tx.blockNumber, slot: balance_slot_keccak }
-    return { blockNum: block_number, slot: balance_slot_keccak }
-  }
+  const value = parseInt(await ethGetStorageAt(contract_address, balance_slot_keccak, block_number), 16)
+  console.log(value,address)
+  //return { blockNum: tx.blockNumber, slot: balance_slot_keccak }
+  return { blockNum: block_number, slot: balance_slot_keccak }
+  
   //}
 
-  return null
+
 }
 
+// export const proofOfOG = async (address: string, contract_address: string, block_number: number, storage_slot_balance: number) => {
+//   /*
+//   const blocks_lookup = 1000
+//   const creation_block = await getTxBlockNum(contract_creation_tx)
+//   const creation_block = block_number
+//   const txs = await getTxsInBlockInterval(creation_block, creation_block + blocks_lookup, contract_address, address)
+//   */
 
-export const proofOfSismoBadge = async (contract_address: string, storage_slot_balance: number, owner: string) => {
-  const current_block = await getCurrentBlockNum();
+//   //for (const tx of txs) {
+//   const balance_slot_keccak = ethers.utils.keccak256(
+//     ethers.utils.concat([
+//       ethers.utils.zeroPad(address, 32),
+//       ethers.utils.defaultAbiCoder.encode(
+//         ['uint256'],
+//         [storage_slot_balance]
+//       )
+//     ])
+//   )
 
-  // e.g: 0xf61cabba1e6fc166a66bca0fcaa83762edb6d4bd
-  const sismo_graphql_query = `
-  query getAllAttestationsForAccount {
-    attestations(where: {owner: ${owner}}) {
-      id
-      network
-      recordedAt
-      timestamp
-      value
-      issuer
-      owner {
-        id
-      }
-      transaction {
-        id
-      }
-      mintedBadge {
-        id
-      }
-    }
-  }
-`;
+//   const balance = parseInt(await ethGetStorageAt(contract_address, balance_slot_keccak, block_number), 16)
+//   if (balance > 0) {
+//     //return { blockNum: tx.blockNumber, slot: balance_slot_keccak }
+//     return { blockNum: block_number, slot: balance_slot_keccak }
+//   }
+//   //}
 
-  const options = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({ sismo_graphql_query }),
-  };
-  fetch('https://api.testnets.sismo.io/', options)
-    .then(response => {
-      console.log(response)
-      if (response.ok) {
+//   return null
+// }
 
-        return response.json();
-      } else {
 
-        throw new Error(`Request failed. Status: ${response.status}`);
-      }
-    })
-    .then(data => {
+// export const proofOfSismoBadge = async (contract_address: string, storage_slot_balance: number, owner: string) => {
+//   const current_block = await getCurrentBlockNum();
 
-      const attestations = data.data.attestations;
-      let totalBalance = 0;
-      attestations.forEach(async (attestation: any) => {
-        if (attestation.network == 'goerli') {
+//   // e.g: 0xf61cabba1e6fc166a66bca0fcaa83762edb6d4bd
+//   const sismo_graphql_query = `
+//   query getAllAttestationsForAccount {
+//     attestations(where: {owner: ${owner}}) {
+//       id
+//       network
+//       recordedAt
+//       timestamp
+//       value
+//       issuer
+//       owner {
+//         id
+//       }
+//       transaction {
+//         id
+//       }
+//       mintedBadge {
+//         id
+//       }
+//     }
+//   }
+// `;
 
-          const balance_slot_keccak = ethers.utils.keccak256(
-            ethers.utils.concat([
-              ethers.utils.zeroPad(owner, 32),
-              ethers.utils.concat([
-                ethers.utils.defaultAbiCoder.encode(
-                  ['uint256'],
-                  [attestation.mintedBadge['id']]
-                ),
-                ethers.utils.defaultAbiCoder.encode(
-                  ['uint256'],
-                  // second element of the struct (0, 1, ...)
-                  [storage_slot_balance]
-                )
-              ])])
-          ) + 1
+//   const options = {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Accept': 'application/json',
+//     },
+//     body: JSON.stringify({ sismo_graphql_query }),
+//   };
+//   fetch('https://api.testnets.sismo.io/', options)
+//     .then(response => {
+//       console.log(response)
+//       if (response.ok) {
 
-          const balance = parseInt(await ethGetStorageAt(contract_address, balance_slot_keccak, current_block), 16)
+//         return response.json();
+//       } else {
 
-          totalBalance += balance;
-          console.log(attestation.owner['id'])
-          console.log(attestation.mintedBadge['id'])
+//         throw new Error(`Request failed. Status: ${response.status}`);
+//       }
+//     })
+//     .then(data => {
 
-          return totalBalance
+//       const attestations = data.data.attestations;
+//       let totalBalance = 0;
+//       attestations.forEach(async (attestation: any) => {
+//         if (attestation.network == 'goerli') {
 
-        }
-      });
-    })
+//           const balance_slot_keccak = ethers.utils.keccak256(
+//             ethers.utils.concat([
+//               ethers.utils.zeroPad(owner, 32),
+//               ethers.utils.concat([
+//                 ethers.utils.defaultAbiCoder.encode(
+//                   ['uint256'],
+//                   [attestation.mintedBadge['id']]
+//                 ),
+//                 ethers.utils.defaultAbiCoder.encode(
+//                   ['uint256'],
+//                   // second element of the struct (0, 1, ...)
+//                   [storage_slot_balance]
+//                 )
+//               ])])
+//           ) + 1
 
-  return null
-}
+//           const balance = parseInt(await ethGetStorageAt(contract_address, balance_slot_keccak, current_block), 16)
+
+//           totalBalance += balance;
+//           console.log(attestation.owner['id'])
+//           console.log(attestation.mintedBadge['id'])
+
+//           return totalBalance
+
+//         }
+//       });
+//     })
+
+//   return null
+// }
 
 export const herodotusProof = async (address: string, blockNum: number) => {
   const herodotus_endpoint = process.env.HERODOTUS_API as string
