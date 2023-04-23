@@ -35,6 +35,13 @@ export default function Home() {
   const { address, isConnected } = useAccount();
   const [ownednfts, setOwnedNfts] = useState<any[]>();
   const [selectedTokenId, setSelectedTokenId] = useState<number>();
+  const [selectedBlockNumber, setSelectedBlockNumber] = useState<number>();
+  const [selectedTokenProves, setSelectedTokenProves] = useState<[]>();
+
+  if (typeof window !== "undefined") {
+    // Perform localStorage action
+    const item = localStorage.getItem("key");
+  }
 
   const updateOwnedNFT = (result: any) => {
     console.log(result);
@@ -44,6 +51,9 @@ export default function Home() {
   const handleSelection = async (tokenId: any) => {
     console.log(tokenId);
     setSelectedTokenId(tokenId);
+    const result = localStorage.getItem("proofs") || "{}";
+    const proofs = JSON.parse(result)[tokenId];
+    setSelectedTokenProves(proofs);
   };
 
   const updateNFTState = async () => {
@@ -66,6 +76,7 @@ export default function Home() {
         </div>
 
         <MintNFT stateChanger={setOwnedNfts} />
+        <div>Click NFT you want to generate proof of ownership</div>
 
         <div className={styles.wrappedNFTs}>
           {isConnected &&
@@ -90,9 +101,20 @@ export default function Home() {
               </div>
             ))}
         </div>
+        <div className={styles.preproven}>
+          <p>
+            #{selectedTokenId} already generated proof of ownership🥳 Select the
+            BlockNumber you want to reflect to Starknet
+          </p>
+          {selectedTokenProves?.map((prove) => (
+            <div>
+              <div>{prove.block_number}</div>
+            </div>
+          ))}
+        </div>
 
         <div className={styles.proofBtn}>
-          {selectedTokenId ? (
+          {!selectedTokenProves ? (
             <button
               onClick={async () =>
                 await handleGenerateProof(address as string, selectedTokenId)
@@ -100,7 +122,13 @@ export default function Home() {
               Generate Proof of Ownership of {selectedTokenId}
             </button>
           ) : (
-            <div>Click NFT you want to generate proof of ownership</div>
+            <button
+              onClick={async () =>
+                await handleGenerateProof(address as string, selectedTokenId)
+              }>
+              Reflect Proof of Ownership of Blocktimes : {selectedBlockNumber}
+              TokenId : {selectedTokenId}
+            </button>
           )}
         </div>
       </div>

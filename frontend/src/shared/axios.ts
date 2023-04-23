@@ -5,8 +5,17 @@ export const handleGenerateProof = async (address:string, selectedTokenId:number
       addr: address,
       tokenId: selectedTokenId,
     });
-    console.log(res);
-    console.log("hihi");
+    const original = localStorage.getItem("proofs") || "{}"
+   const json_original = JSON.parse(original)
+   if(json_original[selectedTokenId]){
+    json_original[selectedTokenId].push({"block_number":res.data.block_number ,"calldata": res.data.calldata})
+   }else {
+    json_original[selectedTokenId] =  [{"block_number":res.data.block_number ,"calldata": res.data.calldata}]
+
+   }
+  
+    localStorage.setItem("proofs",JSON.stringify( json_original ));
+    return res.data
   };
 
 

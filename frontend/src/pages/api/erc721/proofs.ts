@@ -27,8 +27,8 @@ export const proofOfOwnership = async (address:string, token_id: number, contrac
     ])
   ) 
 
-  const value = parseInt(await ethGetStorageAt(contract_address, balance_slot_keccak, block_number), 16)
-  console.log(value,address)
+  // const value = parseInt(await ethGetStorageAt(contract_address, balance_slot_keccak, block_number), 16)
+  // console.log(value,address)
   //return { blockNum: tx.blockNumber, slot: balance_slot_keccak }
   return { blockNum: block_number, slot: balance_slot_keccak }
   

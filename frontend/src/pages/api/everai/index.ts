@@ -24,14 +24,14 @@ console.log(address,token_id)
   //get proof of ownership of everai
   const proofOwnership = await proofOfOwnership(address, token_id, contract_data.address, contract_data.proof_blocknumber, contract_data.mapping_storage_slot)
   if (!proofOwnership) return res.status(500).json([])
-  console.log(proofOwnership,"proofOwnership")
+
   //generate check user's proof and validate it send it to factregistery
   await herodotusProof(contract_data.address, proofOwnership?.blockNum )
   
   // after passing herodotus validation, we can get proof from ethereum and starknetverify it. Why? we need this for get_storage_uint for factregistery
   const calldata = await starknetVerify(contract_data.address, proofOwnership?.slot, proofOwnership?.blockNum)
-
-  return res.status(200).json(calldata)
+  const result = {calldata, block_number: proofOwnership?.blockNum}
+  return res.status(200).json(result)
 }
 
 
