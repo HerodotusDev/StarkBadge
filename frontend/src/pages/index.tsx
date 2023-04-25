@@ -78,9 +78,7 @@ export default function Home() {
   const handleSelection = async (tokenId: any) => {
     console.log(tokenId);
     setSelectedTokenId(tokenId);
-    const result = localStorage.getItem("proofs") || "{}";
-    const proofs = JSON.parse(result)[tokenId];
-    setSelectedTokenProves(proofs);
+    updateProofsStates(tokenId);
   };
 
   const updateNFTState = async () => {
@@ -88,6 +86,21 @@ export default function Home() {
     setOwnedNfts(res);
   };
 
+  const updateProofsStates = async (tokenId: number) => {
+    const result = localStorage.getItem("proofs") || "{}";
+    const proofs = JSON.parse(result)[tokenId];
+    setSelectedBlockNumber(undefined);
+    setSelectedTokenProves(proofs);
+  };
+
+  const clickGenerateProof = async () => {
+    await handleGenerateProof(address as string, selectedTokenId as number);
+    await updateProofsStates(selectedTokenId as number);
+  };
+
+  const handleClaiming = async (block_number: any) => {
+    setSelectedBlockNumber(block_number);
+  };
   useEffect(() => {
     updateNFTState();
   }, [isConnected]);
@@ -103,7 +116,9 @@ export default function Home() {
         </div>
 
         <MintNFT stateChanger={setOwnedNfts} />
-        <div>Click NFT you want to generate proof of ownership</div>
+        <div className={styles.description}>
+          Click NFT, that you want to generate proof of ownership🛰️
+        </div>
 
         <div className={styles.wrappedNFTs}>
           {isConnected &&
@@ -130,48 +145,64 @@ export default function Home() {
         </div>
         <div className={styles.preproven}>
           {selectedTokenProves?.length ? (
-            <p>
+            <div className={styles.description}>
               #{selectedTokenId} already generated proof of ownership🥳 Select
               the BlockNumber you want to reflect to Starknet
-            </p>
+            </div>
           ) : (
-            <p>
+            <div className={styles.description}>
               #{selectedTokenId} don't have proof of ownership yet. Generate
               proof of latest Ethereum block
-            </p>
+            </div>
           )}
+          <button className={styles.proofbutton} onClick={clickGenerateProof}>
+            Create new Proof of {selectedTokenId}
+          </button>
+        </div>
 
-          {selectedTokenProves?.map((prove) => (
-            <div>
+        <div className={styles.wrappedNFTs}>
+          {selectedTokenProves?.map((prove: any) => (
+            <div
+              className={
+                parseInt(prove.block_number) === selectedBlockNumber
+                  ? styles.selectedBlockNumber
+                  : styles.unselectedBlockNumber
+              }
+              onClick={async () =>
+                await handleClaiming(prove.block_number as number)
+              }>
               <div>{prove.block_number}</div>
             </div>
           ))}
         </div>
+        {/* <div className={styles.proofBtn}>
+          <button
+            onClick={async () =>
+              await handleGenerateProof(
+                address as string,
+                selectedTokenId as number
+              )
+            }>
+            New Proof of {selectedTokenId}
+          </button>
+        </div> */}
 
-        <div className={styles.proofBtn}>
-          {!selectedTokenProves ? (
-            <button
+        {selectedBlockNumber && (
+          <div className={styles.infoClaim}>
+            <div>Blocktimes : {selectedBlockNumber}</div>
+            <div>TokenId : {selectedTokenId}</div>
+            <div
+              className={styles.proofbutton}
               onClick={async () =>
                 await handleGenerateProof(
                   address as string,
                   selectedTokenId as number
                 )
               }>
-              Generate Proof of Ownership of {selectedTokenId}
-            </button>
-          ) : (
-            <button
-              onClick={async () =>
-                await handleGenerateProof(
-                  address as string,
-                  selectedTokenId as number
-                )
-              }>
-              Reflect Proof of Ownership of Blocktimes : {selectedBlockNumber}
-              TokenId : {selectedTokenId}
-            </button>
-          )}
-        </div>
+              Create Reflection Proof of Ownership{" "}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

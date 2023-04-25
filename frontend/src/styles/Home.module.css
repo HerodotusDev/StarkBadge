@@ -6,8 +6,14 @@
   padding: 6rem;
   min-height: 100vh;
 }
+.description {
+  font-size: large;
+  text-align: center;
+
+}
 
 .preproven {
+  justify-content: center;
   display: flex;
      margin: 1em 2em;
     /* flex-direction: column; */
@@ -16,12 +22,37 @@
     flex-wrap: wrap;
 }
 
-.preproven > div {
-      padding: 0.51em 1em;
+.unselectedBlockNumber {
+    padding: 0.51em 1em;
     background: #000072;
     border: 2px solid #5a5aa5;
     border-radius: 20px;
 }
+
+.unselectedBlockNumber:hover {
+cursor: pointer;
+border: 4px solid #5a5aa5;
+
+}
+.selectedBlockNumber {
+  cursor: pointer;
+  padding: 0.51em 1em;
+  background: #000072;
+ 
+  border-radius: 20px;
+  border: 4px solid #ff875b
+}
+
+.proofbutton {
+  cursor: pointer;
+  padding: 0.51em 1em;
+  background: #ff875b;
+ 
+  border-radius: 20px;
+  border: 4px solid #ff875b
+}
+
+
 
 .explanation {
   display: flex;
@@ -46,15 +77,30 @@
 
 
 .wrappedNFTs {
-
+  overflow: scroll;
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   border-radius: 26px;
   border: 2px solid #383838;
   padding: 2em;
   margin: 1em;
   background: #1d1d1d;
-  justify-content: center;
+  /* justify-content: center; */
+  align-items: center;
+  gap: 2em;
+}
+
+.infoClaim {
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  /* flex-wrap: wrap; */
+  border-radius: 26px;
+  border: 2px solid #383838;
+  padding: 2em;
+  margin: 1em;
+  background: #1d1d1d;
+  /* justify-content: center; */
   align-items: center;
   gap: 2em;
 }
@@ -93,6 +139,7 @@
   cursor: pointer;
   border: 4px solid #ff875b
 }
+
 
 
 .description {
