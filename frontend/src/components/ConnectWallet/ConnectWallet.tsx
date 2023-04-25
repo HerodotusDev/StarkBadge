@@ -40,10 +40,14 @@ export default function ConnectWallet() {
 }
 
 const StyledConnectWallet = styled.div`
-  position: fixed;
-  top: 40px;
-  right: 40px;
-  color: #ff875b;
+  background: white;
+  width: max-content;
+  padding: 0.5em 1.5em;
+  border-radius: 14px;
+  height: 2.5em;
+  color: black;
+  font-weight: 700;
+
   cursor: pointer;
   user-select: none;
   display: flex;

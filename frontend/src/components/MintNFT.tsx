@@ -9,7 +9,7 @@ import {
   useAccount,
 } from "wagmi";
 
-export function MintNFT({ stateChanger }) {
+export function MintNFT({ stateChanger }: any) {
   const {
     config,
     error: prepareError,
@@ -21,7 +21,7 @@ export function MintNFT({ stateChanger }) {
   });
   const { data, error, isError, write } = useContractWrite(config);
   const { address } = useAccount();
-  console.log(stateChanger);
+  // console.log(stateChanger);
 
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,
