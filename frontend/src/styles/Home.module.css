@@ -12,6 +12,15 @@
 
 }
 
+.step {
+  text-align: center;
+    font-size: 1.5rem;
+    font-weight: bolder;
+    font-family: monospace;
+    color: #ff6933;
+    padding: 0.4em;
+}
+
 .preproven {
   justify-content: center;
   display: flex;

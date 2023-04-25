@@ -115,11 +115,15 @@ export default function Home() {
           <ConnectWallet />
         </div>
 
+        {/* STEP0 : (optional) Mint NFT on L1 */}
+        <div className={styles.step}>STEP0 : (optional) Mint NFT on L1</div>
         <MintNFT stateChanger={setOwnedNfts} />
+
+        {/* STEP1 : Select L1 NFT */}
+        <div>STEP1 : Select L1 NFT</div>
         <div className={styles.description}>
           Click NFT, that you want to generate proof of ownership🛰️
         </div>
-
         <div className={styles.wrappedNFTs}>
           {isConnected &&
             ownednfts?.map((nft) => (
@@ -142,6 +146,11 @@ export default function Home() {
                 <div>{nft.title}</div>
               </div>
             ))}
+        </div>
+
+        {/* STEP2 : Select L1 NFT blocknumber of proof */}
+        <div className={styles.step}>
+          STEP2 : Select L1 NFT blocknumber of proof{" "}
         </div>
         <div className={styles.preproven}>
           {selectedTokenProves?.length ? (
@@ -175,18 +184,9 @@ export default function Home() {
             </div>
           ))}
         </div>
-        {/* <div className={styles.proofBtn}>
-          <button
-            onClick={async () =>
-              await handleGenerateProof(
-                address as string,
-                selectedTokenId as number
-              )
-            }>
-            New Proof of {selectedTokenId}
-          </button>
-        </div> */}
 
+        {/* STEP3 : Claim on Starknet */}
+        <div className={styles.step}>STEP3 : Claim on Starknet </div>
         {selectedBlockNumber && (
           <div className={styles.infoClaim}>
             <div>Blocktimes : {selectedBlockNumber}</div>

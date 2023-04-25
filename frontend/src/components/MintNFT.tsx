@@ -37,7 +37,6 @@ export function MintNFT({ stateChanger }) {
   return (
     <div>
       <div className={styles.explanation}>
-        <div>You can mint new everAI!</div>
         <button disabled={!write || isLoading} onClick={write}>
           {isLoading ? "Minting..." : "Mint"}
         </button>
