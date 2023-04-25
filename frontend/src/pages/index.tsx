@@ -39,7 +39,7 @@ export default function Home() {
   const [selectedTokenId, setSelectedTokenId] = useState<number>();
   const [selectedBlockNumber, setSelectedBlockNumber] = useState<number>();
   const [selectedTokenProves, setSelectedTokenProves] = useState<[]>();
-  const [isMapping, setIsMapping] = useState("false");
+  const [isMapping, setIsMapping] = useState(false);
 
   const { account: starknetAccount, isConnected: isStarknetConnected } =
     useStarknetAccount();
@@ -96,8 +96,11 @@ export default function Home() {
       "call starknet contract and add mapping"
     );
 
-    localStorage.setItem("mapping_L1_L2", "true");
-    setIsMapping("true");
+    localStorage.setItem(
+      "mapping_L1_L2",
+      JSON.stringify({ L1: address, L2: starknetAccount?.address })
+    );
+    setIsMapping(true);
 
     // const res = await REFLECTION_CONTRACT.invoke("mint_coupon", [
     //   ReflectContract,
@@ -107,7 +110,16 @@ export default function Home() {
 
   const updateMappingState = async () => {
     const item = localStorage.getItem("mapping_L1_L2");
-    setIsMapping(item as string);
+    const data = JSON.parse(item as string);
+    if (data) {
+      if (data.L1 == address && data.L2 == starknetAccount?.address) {
+        setIsMapping(true);
+      } else {
+        setIsMapping(false);
+      }
+    } else {
+      setIsMapping(false);
+    }
   };
 
   const handleSelection = async (tokenId: any) => {
@@ -148,15 +160,13 @@ export default function Home() {
     if (isSuccess) {
       handleAddrMappingToStarknet();
       console.log("hihi");
-      updateMappingState();
+      // setIsMapping(true);
     }
   }, [isLoading]);
 
-  // useEffect(() => {
-  //   if (isConnected && isStarknetConnected && isMapping !== "true") {
-  //     handleAddrMapping();
-  //   }
-  // }, [isConnected, isStarknetConnected]);
+  useEffect(() => {
+    updateMappingState();
+  }, [isConnected, isStarknetConnected]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
