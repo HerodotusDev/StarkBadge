@@ -30,6 +30,7 @@ import { everaiDuoABI } from "@/shared/everaiDuo";
 import { MintNFT } from "@/components/MintNFT";
 import { handleGenerateProof, handleOwnedNFTs } from "@/shared/axios";
 import { factoryABI } from "@/shared/factoryAbi";
+import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -176,6 +177,15 @@ export default function Home() {
 
   return (
     <>
+      <div className={styles.infoClaim}>
+        <div className={styles.pageTitle}>
+          Mint your EverAI StarkBadge on Starknet
+        </div>
+        <div className={styles.titleDescription}>
+          <Link href={"/"}> What is Stark Badge? CLICK HERE</Link>
+        </div>
+      </div>
+
       <div>
         {isMapping && isConnected && isStarknetConnected ? (
           <>
@@ -189,9 +199,11 @@ export default function Home() {
             </div>
 
             {/* STEP0 : (optional) Mint NFT on L1 */}
+            <hr />
             <div className={styles.step}>STEP0 : (optional) Mint NFT on L1</div>
             <MintNFT stateChanger={setOwnedNfts} />
             {/* STEP1 : Select L1 NFT */}
+            <hr />
             <div className={styles.step}>STEP1 : Select L1 NFT</div>
             <div className={styles.description}>
               Click NFT, that you want to generate proof of ownership🛰️
@@ -220,6 +232,7 @@ export default function Home() {
                 ))}
             </div>
             {/* STEP2 : Select L1 NFT blocknumber of proof */}
+            <hr />
             <div className={styles.step}>
               STEP2 : Select L1 NFT blocknumber of proof{" "}
             </div>
@@ -257,6 +270,7 @@ export default function Home() {
               ))}
             </div>
             {/* STEP3 : Claim on Starknet */}
+            <hr />
             <div className={styles.step}>STEP3 : Claim on Starknet </div>
             {selectedBlockNumber && (
               <div className={styles.infoClaim}>

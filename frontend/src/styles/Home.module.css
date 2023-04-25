@@ -21,12 +21,32 @@
 
 }
 
+.pageTitle {
+     text-align: center;
+    font-size: 2rem;
+    font-family: monospace;
+    color: #fddfd4;
+    /* padding: 1.4em 0 0 0; */
+}
+
+.titleDescription {
+  text-align: center;
+  /* padding: 0.4em; */
+    font-size: 1rem;
+    font-weight: bolder;
+    font-family: monospace;
+    color: #ffd2c2;
+    text-decoration: underline;
+    cursor: pointer;
+    
+}
+
 .step {
   text-align: center;
     font-size: 1.5rem;
     font-weight: bolder;
     font-family: monospace;
-    color: #ff6933;
+    color: #ff875b;
     padding: 0.4em;
 }
 
@@ -109,7 +129,7 @@ border: 4px solid #5a5aa5;
 }
 
 .signupWrapper > div {
-  margin: 2em;
+  margin: 1em;
 }
 
 .navbar {
