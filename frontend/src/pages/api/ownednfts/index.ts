@@ -14,7 +14,7 @@ let contract_data = {
 
 const get = async (req: NextApiRequest, res: NextApiResponse<ReturnData>) => {
   const address = req.query.addr as string
-console.log(address)
+  console.log(address)
   const nftList = await getTokenIds(address, contract_data.address)
   res.status(200).json({nftList})
 }

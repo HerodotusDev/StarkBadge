@@ -24,7 +24,7 @@ import {
 import { ConnectWallet } from "@/components/ConnectWallet";
 import { Account, Contract, Provider, ProviderInterface } from "starknet";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { everaiDuoABI } from "@/shared/everaiDuo";
 import { MintNFT } from "@/components/MintNFT";
 import { handleGenerateProof, handleOwnedNFTs } from "@/shared/axios";
@@ -37,16 +37,43 @@ export default function Home() {
   const [selectedTokenId, setSelectedTokenId] = useState<number>();
   const [selectedBlockNumber, setSelectedBlockNumber] = useState<number>();
   const [selectedTokenProves, setSelectedTokenProves] = useState<[]>();
+  const { account: starknetAccount } = useStarknetAccount();
+  const { connect, connectors } = useConnectors();
+  const ReflectContract =
+    "0x052cff61dcf94606146f7876127f31fe9c9c20b6369af5f92937f423eecc6b89";
 
-  if (typeof window !== "undefined") {
-    // Perform localStorage action
-    const item = localStorage.getItem("key");
+  // const connector = useMemo(
+  //   () => connectors.find((c) => c.options.id === "argentX") ?? connectors[0],
+  //   [connectors]
+  // );
+  // console.log(connector, "index");
+
+  // ------------------ starknet contract write ------------------
+  const provider = new Provider({ sequencer: { network: "goerli-alpha" } });
+  const FACTORY_CONTRACT = new Contract(
+    everaiDuoABI,
+    "0x005e7ccdc3677133173038d8cca7ed66236f25ff28b47c36549705337c931291",
+    provider
+  );
+  if (starknetAccount !== undefined) {
+    FACTORY_CONTRACT.connect(starknetAccount);
   }
 
-  const updateOwnedNFT = (result: any) => {
-    console.log(result);
-    setOwnedNfts(result);
+  // ------------------ end contract write ------------------
+
+  const claimNFT = async () => {
+    console.log(ReflectContract, selectedTokenProves, "dagewgewwggwe");
+
+    const res = await FACTORY_CONTRACT.invoke("mint_coupon", [
+      ReflectContract,
+      selectedTokenProves,
+    ]);
   };
+
+  // const updateOwnedNFT = (result: any) => {
+  //   console.log(result);
+  //   setOwnedNfts(result);
+  // };
 
   const handleSelection = async (tokenId: any) => {
     console.log(tokenId);
@@ -102,10 +129,18 @@ export default function Home() {
             ))}
         </div>
         <div className={styles.preproven}>
-          <p>
-            #{selectedTokenId} already generated proof of ownership🥳 Select the
-            BlockNumber you want to reflect to Starknet
-          </p>
+          {selectedTokenProves?.length ? (
+            <p>
+              #{selectedTokenId} already generated proof of ownership🥳 Select
+              the BlockNumber you want to reflect to Starknet
+            </p>
+          ) : (
+            <p>
+              #{selectedTokenId} don't have proof of ownership yet. Generate
+              proof of latest Ethereum block
+            </p>
+          )}
+
           {selectedTokenProves?.map((prove) => (
             <div>
               <div>{prove.block_number}</div>
@@ -117,14 +152,20 @@ export default function Home() {
           {!selectedTokenProves ? (
             <button
               onClick={async () =>
-                await handleGenerateProof(address as string, selectedTokenId)
+                await handleGenerateProof(
+                  address as string,
+                  selectedTokenId as number
+                )
               }>
               Generate Proof of Ownership of {selectedTokenId}
             </button>
           ) : (
             <button
               onClick={async () =>
-                await handleGenerateProof(address as string, selectedTokenId)
+                await handleGenerateProof(
+                  address as string,
+                  selectedTokenId as number
+                )
               }>
               Reflect Proof of Ownership of Blocktimes : {selectedBlockNumber}
               TokenId : {selectedTokenId}
