@@ -227,7 +227,7 @@ export default function Home() {
                     </div>
                   ) : (
                     <div className={styles.stepDetail}>
-                      You don't have Any NFT, Mint New one
+                      You have no NFT! Mint New one 🪄
                       <MintNFT stateChanger={setOwnedNfts} />
                     </div>
                   )}
@@ -272,7 +272,7 @@ export default function Home() {
                       </div>
                     ) : (
                       <div className={styles.description}>
-                        #{selectedTokenId} don't have proof of ownership yet.
+                        #{selectedTokenId} have no proof of ownership yet.
                         Generate proof of latest Ethereum block
                       </div>
                     )}
@@ -285,6 +285,7 @@ export default function Home() {
                   <div className={styles.wrappedNFTs}>
                     {selectedTokenProves?.map((prove: any) => (
                       <div
+                        key={prove}
                         className={
                           parseInt(prove.block_number) === selectedBlockNumber
                             ? styles.selectedBlockNumber
