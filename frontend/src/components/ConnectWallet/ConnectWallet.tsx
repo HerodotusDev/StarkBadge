@@ -44,7 +44,7 @@ const StyledConnectWallet = styled.div`
   width: max-content;
   padding: 0.5em 1.5em;
   border-radius: 14px;
-  height: 2.5em;
+  height: 2.3em;
   color: black;
   font-weight: 700;
 

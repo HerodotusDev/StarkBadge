@@ -15,7 +15,12 @@
   margin: 3em;
 }
 
+.preproven > div {
+  margin: 0 0 2em 0;
+}
+
 .description {
+
   font-size: large;
   text-align: center;
 
@@ -24,7 +29,7 @@
 .pageTitle {
      text-align: center;
     font-size: 2rem;
-    font-family: monospace;
+
     color: #fddfd4;
     /* padding: 1.4em 0 0 0; */
 }
@@ -34,7 +39,7 @@
   /* padding: 0.4em; */
     font-size: 1rem;
     font-weight: bolder;
-    font-family: monospace;
+
     color: #ffd2c2;
     text-decoration: underline;
     cursor: pointer;
@@ -45,7 +50,7 @@
   text-align: center;
     font-size: 1.5rem;
     font-weight: bolder;
-    font-family: monospace;
+
     color: #ff875b;
     padding: 0.4em;
 }
@@ -191,7 +196,7 @@ border: 4px solid #5a5aa5;
   background: #121212;
   /* justify-content: center; */
   align-items: center;
-  gap: 2em;
+
 }
 
 .infoClaim {

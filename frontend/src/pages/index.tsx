@@ -42,6 +42,7 @@ export default function Home() {
   const [selectedTokenProves, setSelectedTokenProves] = useState<[]>();
   const [stepStatus, setStepStatus] = useState<number>(1);
   const [isMapping, setIsMapping] = useState(false);
+  const [isLoadingProof, setIsLoadingProof] = useState<boolean>(false);
 
   const { account: starknetAccount, isConnected: isStarknetConnected } =
     useStarknetAccount();
@@ -98,6 +99,14 @@ export default function Home() {
       "call starknet contract and add mapping"
     );
 
+    const signatureBuffer = Buffer.from(data as string);
+    console.log(signatureBuffer);
+    const v = signatureBuffer[64] + 27; // add 27 to get the recovery ID
+    const r = signatureBuffer.slice(0, 32).toString("hex");
+    const s = signatureBuffer.slice(32, 64).toString("hex");
+
+    console.log({ r, s, v });
+
     localStorage.setItem(
       "mapping_L1_L2",
       JSON.stringify({ L1: address, L2: starknetAccount?.address })
@@ -143,8 +152,10 @@ export default function Home() {
   };
 
   const clickGenerateProof = async () => {
+    setIsLoadingProof(true);
     await handleGenerateProof(address as string, selectedTokenId as number);
     await updateProofsStates(selectedTokenId as number);
+    setIsLoadingProof(false);
   };
 
   // const isMapping = localStorage.getItem("mapping_L1_L2") as string;
@@ -178,15 +189,6 @@ export default function Home() {
 
   return (
     <>
-      <div className={styles.infoClaim}>
-        <div className={styles.pageTitle}>
-          Mint your EverAI StarkBadge on Starknet
-        </div>
-        <div className={styles.titleDescription}>
-          <Link href={"/"}> What is Stark Badge? CLICK HERE</Link>
-        </div>
-      </div>
-
       <div>
         {isMapping && isConnected && isStarknetConnected ? (
           <>
@@ -207,12 +209,7 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              {stepStatus == 0 ? (
-                <>
-                  {/* STEP0 : (optional) Mint NFT on L1 */}
-                  <hr />
-                </>
-              ) : stepStatus == 1 ? (
+              {stepStatus == 1 ? (
                 <>
                   {/* STEP1 : Select L1 NFT */}
                   <hr />
@@ -222,39 +219,43 @@ export default function Home() {
                   </div> */}
 
                   {ownednfts?.length ? (
-                    <div className={styles.stepDetail}>
-                      Click NFT, that you want to generate proof of ownership🛰️
-                    </div>
+                    <>
+                      <div className={styles.stepDetail}>
+                        Click NFT, that you want to generate proof of
+                        ownership🛰️
+                      </div>
+                      <div className={styles.wrappedNFTs}>
+                        {isConnected &&
+                          ownednfts?.map((nft) => (
+                            <div
+                              key={nft.id.tokenId}
+                              onClick={async () =>
+                                await handleSelection(parseInt(nft.id.tokenId))
+                              }>
+                              <Image
+                                className={
+                                  parseInt(nft.id.tokenId) === selectedTokenId
+                                    ? styles.selected
+                                    : undefined
+                                }
+                                src={nft.metadata.image}
+                                alt="pic"
+                                width={100}
+                                height={100}
+                              />
+                              <div>{nft.title}</div>
+                            </div>
+                          ))}
+                      </div>
+                      <div>Or</div>
+                      <MintNFT stateChanger={setOwnedNfts} />
+                    </>
                   ) : (
                     <div className={styles.stepDetail}>
                       You have no NFT! Mint New one 🪄
                       <MintNFT stateChanger={setOwnedNfts} />
                     </div>
                   )}
-
-                  <div className={styles.wrappedNFTs}>
-                    {isConnected &&
-                      ownednfts?.map((nft) => (
-                        <div
-                          key={nft.id.tokenId}
-                          onClick={async () =>
-                            await handleSelection(parseInt(nft.id.tokenId))
-                          }>
-                          <Image
-                            className={
-                              parseInt(nft.id.tokenId) === selectedTokenId
-                                ? styles.selected
-                                : undefined
-                            }
-                            src={nft.metadata.image}
-                            alt="pic"
-                            width={100}
-                            height={100}
-                          />
-                          <div>{nft.title}</div>
-                        </div>
-                      ))}
-                  </div>
                 </>
               ) : stepStatus == 2 ? (
                 <>
@@ -276,16 +277,24 @@ export default function Home() {
                         Generate proof of latest Ethereum block
                       </div>
                     )}
+
                     <button
                       className={styles.proofbutton}
                       onClick={clickGenerateProof}>
-                      Create new Proof of {selectedTokenId}
+                      {isLoadingProof
+                        ? "...Loading"
+                        : "Create Latest Proof of Ownership"}
                     </button>
                   </div>
-                  <div className={styles.wrappedNFTs}>
+                  <div
+                    className={
+                      selectedTokenProves?.length
+                        ? styles.wrappedNFTs
+                        : undefined
+                    }>
                     {selectedTokenProves?.map((prove: any) => (
                       <div
-                        key={prove}
+                        key={prove.calldata[0]}
                         className={
                           parseInt(prove.block_number) === selectedBlockNumber
                             ? styles.selectedBlockNumber
@@ -306,8 +315,8 @@ export default function Home() {
                   <div className={styles.step}>STEP3 : Claim on Starknet </div>
                   {selectedBlockNumber && (
                     <div className={styles.infoClaim}>
-                      <div>Blocktimes : {selectedBlockNumber}</div>
-                      <div>TokenId : {selectedTokenId}</div>
+                      <div>Block Number : {selectedBlockNumber}</div>
+                      <div>Token Id : {selectedTokenId}</div>
                       <div
                         className={styles.proofbutton}
                         onClick={async () =>
@@ -341,6 +350,12 @@ export default function Home() {
           <>
             <div className={styles.signupWrapper}>
               <div>
+                <div className={styles.pageTitle}>StarkBadge</div>
+                <div className={styles.titleDescription}>
+                  <Link href={"/"}> What is Stark Badge? CLICK HERE</Link>
+                </div>
+              </div>
+              <div>
                 <div className={styles.step}>
                   STEP 1 : Select Starknet Wallet
                 </div>
@@ -355,7 +370,6 @@ export default function Home() {
               {isConnected && isStarknetConnected && (
                 <div className={styles.infoClaim}>
                   <p>L1 : {address}</p>
-                  <p>🔽</p>
                   <p>L2 : {starknetAccount?.address}</p>
                   <div
                     className={styles.proofbutton}

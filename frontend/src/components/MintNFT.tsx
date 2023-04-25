@@ -43,7 +43,7 @@ export function MintNFT({ stateChanger }: any) {
       </div>
 
       {isSuccess && (
-        <div>
+        <div style={{ display: "flex" }}>
           Successfully minted your NFT!
           <div>
             <a href={`https://goerli.etherscan.io/tx/${data?.hash}`}>
