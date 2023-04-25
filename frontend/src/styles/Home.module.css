@@ -101,10 +101,12 @@ border: 4px solid #5a5aa5;
 
 .explanation > div{
   display: flex;
+ 
   justify-content: center;
 }
 
 .explanation > button {
+  cursor: pointer;
   background: #ff875b;
   padding: 1em 2em;
   border-radius: 30px;
@@ -113,8 +115,47 @@ border: 4px solid #5a5aa5;
 
 }
 
+.nextButton > div {
+  background: white;
+    color: black;
+    padding: 0.6em 1.5em;
+    font-size: larger;
+    font-weight: bolder;
+    /* font-family: monospace; */
+    border-radius: 20px;
+    cursor: pointer;
+   
+}
+
+.nextButton > div:hover {
+  background: rgb(43, 43, 43);
+    color: rgb(255, 255, 255);
+    padding: 0.6em 1.5em;
+    font-size: larger;
+    font-weight: bolder;
+    /* font-family: monospace; */
+    border-radius: 20px;
+    cursor: pointer;
+   
+}
+
+.stepButton {
+  display: flex;
+    width: -webkit-fill-available;
+    justify-content: space-between;
+}
+.stepButton > div {
+  text-align: center;
+      background: #1d1d1d;
+    padding: 0.4em 0.8em;
+    border-radius: 20px;
+    border: 2px solid #383838;
+    cursor: pointer;
+}
+
 
 .wrappedNFTs {
+  width: -webkit-fill-available;
   overflow: scroll;
   display: flex;
   /* flex-wrap: wrap; */
@@ -136,6 +177,21 @@ border: 4px solid #5a5aa5;
   display: flex;
   gap:1em;
   padding: 2em;
+}
+
+.mainWrappet {
+  
+  display: flex;
+  flex-direction: column;
+  /* flex-wrap: wrap; */
+  border-radius: 26px;
+  border: 2px solid #383838;
+  padding: 2em;
+  margin: 1em;
+  background: #121212;
+  /* justify-content: center; */
+  align-items: center;
+  gap: 2em;
 }
 
 .infoClaim {

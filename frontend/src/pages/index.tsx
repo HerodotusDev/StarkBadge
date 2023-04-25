@@ -40,6 +40,7 @@ export default function Home() {
   const [selectedTokenId, setSelectedTokenId] = useState<number>();
   const [selectedBlockNumber, setSelectedBlockNumber] = useState<number>();
   const [selectedTokenProves, setSelectedTokenProves] = useState<[]>();
+  const [stepStatus, setStepStatus] = useState<number>(1);
   const [isMapping, setIsMapping] = useState(false);
 
   const { account: starknetAccount, isConnected: isStarknetConnected } =
@@ -155,7 +156,7 @@ export default function Home() {
   useEffect(() => {
     updateNFTState();
     // updateMappingState();
-  }, [isConnected]);
+  }, [isConnected, address]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -198,96 +199,142 @@ export default function Home() {
               </div>
             </div>
 
-            {/* STEP0 : (optional) Mint NFT on L1 */}
-            <hr />
-            <div className={styles.step}>STEP0 : (optional) Mint NFT on L1</div>
-            <MintNFT stateChanger={setOwnedNfts} />
-            {/* STEP1 : Select L1 NFT */}
-            <hr />
-            <div className={styles.step}>STEP1 : Select L1 NFT</div>
-            <div className={styles.description}>
-              Click NFT, that you want to generate proof of ownership🛰️
-            </div>
-            <div className={styles.wrappedNFTs}>
-              {isConnected &&
-                ownednfts?.map((nft) => (
-                  <div
-                    key={nft.id.tokenId}
-                    onClick={async () =>
-                      await handleSelection(parseInt(nft.id.tokenId))
-                    }>
-                    <Image
-                      className={
-                        parseInt(nft.id.tokenId) === selectedTokenId
-                          ? styles.selected
-                          : undefined
-                      }
-                      src={nft.metadata.image}
-                      alt="pic"
-                      width={100}
-                      height={100}
-                    />
-                    <div>{nft.title}</div>
+            <div className={styles.mainWrappet}>
+              <div className={styles.stepButton}>
+                {stepStatus !== 1 && (
+                  <div onClick={() => setStepStatus(stepStatus - 1)}>
+                    STEP {stepStatus - 1}
                   </div>
-                ))}
-            </div>
-            {/* STEP2 : Select L1 NFT blocknumber of proof */}
-            <hr />
-            <div className={styles.step}>
-              STEP2 : Select L1 NFT blocknumber of proof{" "}
-            </div>
-            <div className={styles.preproven}>
-              {selectedTokenProves?.length ? (
-                <div className={styles.description}>
-                  #{selectedTokenId} already generated proof of ownership🥳
-                  Select the BlockNumber you want to reflect to Starknet
-                </div>
-              ) : (
-                <div className={styles.description}>
-                  #{selectedTokenId} don't have proof of ownership yet. Generate
-                  proof of latest Ethereum block
-                </div>
-              )}
-              <button
-                className={styles.proofbutton}
-                onClick={clickGenerateProof}>
-                Create new Proof of {selectedTokenId}
-              </button>
-            </div>
-            <div className={styles.wrappedNFTs}>
-              {selectedTokenProves?.map((prove: any) => (
-                <div
-                  className={
-                    parseInt(prove.block_number) === selectedBlockNumber
-                      ? styles.selectedBlockNumber
-                      : styles.unselectedBlockNumber
-                  }
-                  onClick={async () =>
-                    await handleClaiming(prove.block_number as number)
-                  }>
-                  <div>{prove.block_number}</div>
-                </div>
-              ))}
-            </div>
-            {/* STEP3 : Claim on Starknet */}
-            <hr />
-            <div className={styles.step}>STEP3 : Claim on Starknet </div>
-            {selectedBlockNumber && (
-              <div className={styles.infoClaim}>
-                <div>Blocktimes : {selectedBlockNumber}</div>
-                <div>TokenId : {selectedTokenId}</div>
-                <div
-                  className={styles.proofbutton}
-                  onClick={async () =>
-                    await handleGenerateProof(
-                      address as string,
-                      selectedTokenId as number
-                    )
-                  }>
-                  Create Reflection Proof of Ownership{" "}
-                </div>
+                )}
               </div>
-            )}
+              {stepStatus == 0 ? (
+                <>
+                  {/* STEP0 : (optional) Mint NFT on L1 */}
+                  <hr />
+                </>
+              ) : stepStatus == 1 ? (
+                <>
+                  {/* STEP1 : Select L1 NFT */}
+                  <hr />
+                  <div className={styles.step}>STEP1 : Select L1 NFT</div>
+                  {/* <div className={styles.step}>
+                    STEP0 : (optional) Mint NFT on L1
+                  </div> */}
+
+                  {ownednfts?.length ? (
+                    <div className={styles.stepDetail}>
+                      Click NFT, that you want to generate proof of ownership🛰️
+                    </div>
+                  ) : (
+                    <div className={styles.stepDetail}>
+                      You don't have Any NFT, Mint New one
+                      <MintNFT stateChanger={setOwnedNfts} />
+                    </div>
+                  )}
+
+                  <div className={styles.wrappedNFTs}>
+                    {isConnected &&
+                      ownednfts?.map((nft) => (
+                        <div
+                          key={nft.id.tokenId}
+                          onClick={async () =>
+                            await handleSelection(parseInt(nft.id.tokenId))
+                          }>
+                          <Image
+                            className={
+                              parseInt(nft.id.tokenId) === selectedTokenId
+                                ? styles.selected
+                                : undefined
+                            }
+                            src={nft.metadata.image}
+                            alt="pic"
+                            width={100}
+                            height={100}
+                          />
+                          <div>{nft.title}</div>
+                        </div>
+                      ))}
+                  </div>
+                </>
+              ) : stepStatus == 2 ? (
+                <>
+                  {/* STEP2 : Select L1 NFT blocknumber of proof */}
+                  <hr />
+                  <div className={styles.step}>
+                    STEP2 : Select L1 NFT blocknumber of proof{" "}
+                  </div>
+                  <div className={styles.preproven}>
+                    {selectedTokenProves?.length ? (
+                      <div className={styles.description}>
+                        #{selectedTokenId} already generated proof of
+                        ownership🥳 Select the BlockNumber you want to reflect
+                        to Starknet
+                      </div>
+                    ) : (
+                      <div className={styles.description}>
+                        #{selectedTokenId} don't have proof of ownership yet.
+                        Generate proof of latest Ethereum block
+                      </div>
+                    )}
+                    <button
+                      className={styles.proofbutton}
+                      onClick={clickGenerateProof}>
+                      Create new Proof of {selectedTokenId}
+                    </button>
+                  </div>
+                  <div className={styles.wrappedNFTs}>
+                    {selectedTokenProves?.map((prove: any) => (
+                      <div
+                        className={
+                          parseInt(prove.block_number) === selectedBlockNumber
+                            ? styles.selectedBlockNumber
+                            : styles.unselectedBlockNumber
+                        }
+                        onClick={async () =>
+                          await handleClaiming(prove.block_number as number)
+                        }>
+                        <div>{prove.block_number}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : stepStatus == 3 ? (
+                <>
+                  {/* STEP3 : Claim on Starknet */}
+                  <hr />
+                  <div className={styles.step}>STEP3 : Claim on Starknet </div>
+                  {selectedBlockNumber && (
+                    <div className={styles.infoClaim}>
+                      <div>Blocktimes : {selectedBlockNumber}</div>
+                      <div>TokenId : {selectedTokenId}</div>
+                      <div
+                        className={styles.proofbutton}
+                        onClick={async () =>
+                          await handleGenerateProof(
+                            address as string,
+                            selectedTokenId as number
+                          )
+                        }>
+                        Create Reflection Proof of Ownership{" "}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>THE END</>
+              )}
+              <div className={styles.nextButton}>
+                {stepStatus == 1 && selectedTokenId && (
+                  <div onClick={() => setStepStatus(stepStatus + 1)}>NEXT</div>
+                )}
+                {stepStatus == 2 && selectedBlockNumber && (
+                  <div onClick={() => setStepStatus(stepStatus + 1)}>NEXT</div>
+                )}
+                {stepStatus == 0 && (
+                  <div onClick={() => setStepStatus(stepStatus + 1)}>NEXT</div>
+                )}
+              </div>
+            </div>
           </>
         ) : (
           <>
