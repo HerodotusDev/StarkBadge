@@ -7,6 +7,12 @@
   min-height: 100vh;
 }
 
+.titleWrapper {
+  margin-top: 5em;
+}
+
+
+
 .signupWrapper {
   display: flex;
   flex-direction: column;
@@ -15,6 +21,11 @@
   margin: 3em;
 }
 
+.signupWrapper > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .preproven > div {
   margin: 0 0 2em 0;
 }
@@ -81,6 +92,15 @@ border: 4px solid #5a5aa5;
   cursor: pointer;
   padding: 0.51em 1em;
   background: #000072;
+ 
+  border-radius: 20px;
+  border: 4px solid #ff875b
+}
+
+.unproofbutton {
+ 
+  padding: 0.51em 1em;
+  background: #303030;
  
   border-radius: 20px;
   border: 4px solid #ff875b

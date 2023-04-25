@@ -44,9 +44,10 @@ export default function Home() {
   const [isMapping, setIsMapping] = useState(false);
   const [isLoadingProof, setIsLoadingProof] = useState<boolean>(false);
 
+  // -------------------------------STARKNET START-------------------------------------------------------
+
   const { account: starknetAccount, isConnected: isStarknetConnected } =
     useStarknetAccount();
-  const { connect, connectors } = useConnectors();
 
   const { data, isError, isLoading, isSuccess, signMessage } = useSignMessage({
     message: `Handling Mapping of everAi reflection nft. Destination is ${starknetAccount?.address}`,
@@ -54,12 +55,6 @@ export default function Home() {
 
   const ReflectContract =
     "0x052cff61dcf94606146f7876127f31fe9c9c20b6369af5f92937f423eecc6b89";
-
-  // const connector = useMemo(
-  //   () => connectors.find((c) => c.options.id === "argentX") ?? connectors[0],
-  //   [connectors]
-  // );
-  // console.log(connector, "index");
 
   // ------------------ starknet contract write ------------------
   const provider = new Provider({ sequencer: { network: "goerli-alpha" } });
@@ -83,22 +78,11 @@ export default function Home() {
     ]);
   };
 
-  // const updateOwnedNFT = (result: any) => {
-  //   console.log(result);
-  //   setOwnedNfts(result);
-  // };
-  const handleAddrMapping = async () => {
-    console.log("handle");
-    signMessage();
-  };
+  // -------------------------------STARKNET END-----------------------------------------------
+
+  // -------------------------------ADDRESS VERIFICATION START------------------------------------------------
 
   const handleAddrMappingToStarknet = async () => {
-    console.log(
-      data,
-      selectedTokenProves,
-      "call starknet contract and add mapping"
-    );
-
     const signatureBuffer = Buffer.from(data as string);
     console.log(signatureBuffer);
     const v = signatureBuffer[64] + 27; // add 27 to get the recovery ID
@@ -106,18 +90,16 @@ export default function Home() {
     const s = signatureBuffer.slice(32, 64).toString("hex");
 
     console.log({ r, s, v });
+    console.log(data, "message");
 
     localStorage.setItem(
       "mapping_L1_L2",
       JSON.stringify({ L1: address, L2: starknetAccount?.address })
     );
     setIsMapping(true);
-
-    // const res = await REFLECTION_CONTRACT.invoke("mint_coupon", [
-    //   ReflectContract,
-    //   selectedTokenProves,
-    // ]);
   };
+
+  // -------------------------------ADDRESS VERIFICATION END------------------------------------------------
 
   const updateMappingState = async () => {
     const item = localStorage.getItem("mapping_L1_L2");
@@ -158,22 +140,20 @@ export default function Home() {
     setIsLoadingProof(false);
   };
 
-  // const isMapping = localStorage.getItem("mapping_L1_L2") as string;
-
   const handleClaiming = async (block_number: any) => {
     setSelectedBlockNumber(block_number);
   };
 
+  // -------------------------------USE EFFECTS------------------------------------------------
+
   useEffect(() => {
     updateNFTState();
-    // updateMappingState();
   }, [isConnected, address]);
 
   useEffect(() => {
     if (isSuccess) {
       handleAddrMappingToStarknet();
       console.log("hihi");
-      // setIsMapping(true);
     }
   }, [isLoading]);
 
@@ -214,9 +194,6 @@ export default function Home() {
                   {/* STEP1 : Select L1 NFT */}
                   <hr />
                   <div className={styles.step}>STEP1 : Select L1 NFT</div>
-                  {/* <div className={styles.step}>
-                    STEP0 : (optional) Mint NFT on L1
-                  </div> */}
 
                   {ownednfts?.length ? (
                     <>
@@ -278,13 +255,17 @@ export default function Home() {
                       </div>
                     )}
 
-                    <button
-                      className={styles.proofbutton}
-                      onClick={clickGenerateProof}>
-                      {isLoadingProof
-                        ? "...Loading"
-                        : "Create Latest Proof of Ownership"}
-                    </button>
+                    {isLoadingProof ? (
+                      <button className={styles.unproofbutton}>
+                        ...Loading
+                      </button>
+                    ) : (
+                      <button
+                        className={styles.proofbutton}
+                        onClick={clickGenerateProof}>
+                        Create Latest Proof of Ownership
+                      </button>
+                    )}
                   </div>
                   <div
                     className={
@@ -348,13 +329,13 @@ export default function Home() {
           </>
         ) : (
           <>
-            <div className={styles.signupWrapper}>
-              <div>
-                <div className={styles.pageTitle}>StarkBadge</div>
-                <div className={styles.titleDescription}>
-                  <Link href={"/"}> What is Stark Badge? CLICK HERE</Link>
-                </div>
+            <div className={styles.titleWrapper}>
+              <div className={styles.pageTitle}>StarkBadge</div>
+              <div className={styles.titleDescription}>
+                <Link href={"/"}> What is Stark Badge? CLICK HERE</Link>
               </div>
+            </div>
+            <div className={styles.signupWrapper}>
               <div>
                 <div className={styles.step}>
                   STEP 1 : Select Starknet Wallet
@@ -373,7 +354,7 @@ export default function Home() {
                   <p>L2 : {starknetAccount?.address}</p>
                   <div
                     className={styles.proofbutton}
-                    onClick={handleAddrMapping}>
+                    onClick={() => signMessage()}>
                     Sign up
                   </div>
                 </div>
