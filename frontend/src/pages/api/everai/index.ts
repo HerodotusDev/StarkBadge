@@ -29,7 +29,9 @@ const token_id = req.body.tokenId as number
   // after passing herodotus validation, we can get proof from ethereum and starknetverify it. Why? we need this for get_storage_uint for factregistery
   const output = await starknetVerify(contract_data.address, proofOwnership?.slot, proofOwnership?.blockNum)
 
-  const calldata = [token_id,proofOwnership?.blockNum,address, proofOwnership?.slot, output.proof_sizes_bytes, output.proof_sizes_words, output.proofs_concat  ]
+  const calldata = [token_id,proofOwnership?.blockNum,address, output.slot, output.proof_sizes_bytes, output.proof_sizes_words, output.proofs_concat  ]
+  
+  console.log(calldata)
   const result = {calldata, block_number: proofOwnership?.blockNum}
   return res.status(200).json(result)
 }
