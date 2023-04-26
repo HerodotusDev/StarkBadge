@@ -21,7 +21,6 @@ export function MintNFT({ stateChanger }: any) {
   });
   const { data, error, isError, write } = useContractWrite(config);
   const { address } = useAccount();
-  // console.log(stateChanger);
 
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,
