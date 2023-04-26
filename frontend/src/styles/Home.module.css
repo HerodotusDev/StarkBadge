@@ -8,7 +8,7 @@
 }
 
 .titleWrapper {
-  margin-top: 5em;
+  margin-top: 2em;
 }
 
 
@@ -39,8 +39,8 @@
 
 .pageTitle {
      text-align: center;
-    font-size: 2rem;
-
+    font-size: 5rem;
+    font-weight: bold;
     color: #fddfd4;
     /* padding: 1.4em 0 0 0; */
 }

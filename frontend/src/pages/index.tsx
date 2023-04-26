@@ -77,12 +77,9 @@ export default function Home() {
 
   // ------------------ end contract write ------------------
 
+  // ------------------ start claim function write ------------------
+
   const handleClaiming = async () => {
-    // console.log(
-    //   selectedTokenProves?.filter(
-    //     (ele) => ele?.block_number == selectedBlockNumber
-    //   )
-    // );
     const claimNFT =
       selectedTokenProves?.filter(
         (ele) => ele?.block_number == selectedBlockNumber
@@ -98,39 +95,7 @@ export default function Home() {
       calldata_raw[5],
     ];
     console.log(calldata_final);
-    // const result = {
-    //   token_id: selectedTokenId,
-    //   block_num: selectedBlockNumber,
-    //   account_addr: address,
-    //   slot: calldata[2],
-    //   proof_sizes_bytes: calldata[3],
-    //   proof_sizes_words: calldata[4],
-    //   proofs_concat: calldata[5],
-    // };
-    // console.log(result);
-    // setSelectedBlockNumber(block_number);
-  };
-
-  const claimNFT = async () => {
-    console.log(ReflectContract, selectedTokenProves, "dagewgewwggwe");
-
-    // const result = {
-    //   token_id: selectedTokenId,
-    //   block_num: selectedBlockNumber,
-    //   account_addr: address,
-    //   slot: felt,
-    //   proof_sizes_bytes_len: felt,
-    //   proof_sizes_bytes: felt,
-    //   proof_sizes_words_len: felt,
-    //   proof_sizes_words: felt,
-    //   proofs_concat_len: felt,
-    //   proofs_concat: felt,
-    // };
-
-    // const res = await REFLECTION_CONTRACT.invoke("mint_coupon", [
-    //   ReflectContract,
-    //   selectedTokenProves,
-    // ]);
+    //  TODO : HAVE TO CONNECT WITH STARKNET CONTRACT
   };
 
   // -------------------------------STARKNET END-----------------------------------------------
@@ -139,7 +104,6 @@ export default function Home() {
 
   const handleAddrMappingToStarknet = async () => {
     const signatureBuffer = Buffer.from(data as string);
-    console.log(signatureBuffer);
     const v = signatureBuffer[64] + 27; // add 27 to get the recovery ID
     const r = signatureBuffer.slice(0, 32).toString("hex");
     const s = signatureBuffer.slice(32, 64).toString("hex");
@@ -157,21 +121,12 @@ export default function Home() {
       signature_s: s,
     });
 
-    // const res = await REFLECTION_CONTRACT.invoke("linkL1wallet", [
-    //   data,
-    //   public_key,
-    //   r,
-    //   s,
-    // ]);
-
-    // console.log({ r, s, v });
-    // console.log(data, "message");
+    // TODO : NEED TO CONNECT WITH STARKNET
 
     localStorage.setItem(
       "mapping_L1_L2",
       JSON.stringify({ L1: address, L2: starknetAccount?.address })
     );
-
     setIsMapping(true);
   };
 
@@ -192,7 +147,6 @@ export default function Home() {
   };
 
   const handleSelection = async (tokenId: any) => {
-    console.log(tokenId);
     setSelectedTokenId(tokenId);
     updateProofsStates(tokenId);
   };
@@ -225,7 +179,6 @@ export default function Home() {
   useEffect(() => {
     if (isSuccess) {
       handleAddrMappingToStarknet();
-      console.log("hihi");
     }
   }, [isLoading]);
 
@@ -373,7 +326,7 @@ export default function Home() {
                       <div
                         className={styles.proofbutton}
                         onClick={handleClaiming}>
-                        Create Reflection Proof of Ownership
+                        Create Staradge
                       </div>
                     </div>
                   )}
@@ -397,9 +350,12 @@ export default function Home() {
         ) : (
           <>
             <div className={styles.titleWrapper}>
-              <div className={styles.pageTitle}>StarkBadge</div>
+              <div className={styles.pageTitle}>Staradge</div>
               <div className={styles.titleDescription}>
-                <Link href={"/"}> What is Stark Badge? CLICK HERE</Link>
+                <Link href={"https://github.com/HerodotusDev/Staradge"}>
+                  {" "}
+                  What is Staradge? CLICK HERE
+                </Link>
               </div>
             </div>
             <div className={styles.signupWrapper}>

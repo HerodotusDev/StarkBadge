@@ -16,10 +16,8 @@ const post = async (req: NextApiRequest, res: NextApiResponse<any>) => {
 const address = req.body.addr as string
 const token_id = req.body.tokenId as number
 
-console.log(address,token_id)
   // get latest block number
   contract_data.proof_blocknumber = await getCurrentBlockNum()
-  console.log(contract_data.proof_blocknumber)
 
   //get proof of ownership of everai
   const proofOwnership = await proofOfOwnership(address, token_id, contract_data.address, contract_data.proof_blocknumber, contract_data.mapping_storage_slot)
@@ -30,16 +28,7 @@ console.log(address,token_id)
   
   // after passing herodotus validation, we can get proof from ethereum and starknetverify it. Why? we need this for get_storage_uint for factregistery
   const output = await starknetVerify(contract_data.address, proofOwnership?.slot, proofOwnership?.blockNum)
-  //  token_id: Uint256,
-  //  block_num: felt,
-  //  account_addr: felt,
-  //  slot: felt,
-  //  proof_sizes_bytes_len: felt,
-  //  proof_sizes_bytes: felt,
-  //  proof_sizes_words_len: felt,
-  //  proof_sizes_words: felt,
-  //  proofs_concat_len: felt,
-  //  proofs_concat: felt
+
   const calldata = [token_id,proofOwnership?.blockNum,address, proofOwnership?.slot, output.proof_sizes_bytes, output.proof_sizes_words, output.proofs_concat  ]
   const result = {calldata, block_number: proofOwnership?.blockNum}
   return res.status(200).json(result)
