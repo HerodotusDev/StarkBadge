@@ -18,6 +18,13 @@ Staradge is a L1 historical reflection of the L2 original NFT.The Staradge contr
 
 Using the <b>Herodotus API</b>, the historical data you get from L1 can be verified in L2. On the Staradge page, you can choose which NFT {#} and which block number you want to make as historical data proof. You can also choose which one you want to claim in L2.
 
+## Technical overview
+
+<div align="center">
+  <img src="docs/diagram.png" height="400">
+  <br />
+</div>
+
 ## User Flow of Staradge App
 
 1. **Sign up**
