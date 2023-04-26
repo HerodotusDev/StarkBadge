@@ -2,10 +2,42 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.signature import check_ecdsa_signature
+from starkware.starknet.common.syscalls import get_caller_address
+from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.memcpy import memcpy
+from starkware.cairo.common.cairo_builtins import EcOpBuiltin
+from starkware.cairo.common.bool import FALSE, TRUE
+from starkware.cairo.common.cairo_keccak.keccak import (
+    finalize_keccak,
+    cairo_keccak_uint256s
+)
 
 from openzeppelin.token.erc721.library import ERC721
+from openzeppelin.introspection.erc165.library import ERC165
+from openzeppelin.access.ownable.library import Ownable
 
-from src.interfaces.IFactsRegistry import IFactsRegistry, StorageSlot
+from token.ERC721.ERC721_Metadata_base import (
+    ERC721_Metadata_initializer,
+    ERC721_Metadata_tokenURI,
+    ERC721_Metadata_setBaseTokenURI,
+)
+
+from src.interfaces.IFactsRegistry import IFactsRegistry
+
+// Herodotus Facts Registry Contract Address
+const FACTS_REGISTRY_ADDRESS = 1;
+
+
+//
+// Storage Variables
+//
+
+// Mapping for storing linked L1 and L2 accounts
+@storage_var
+func linkedAddresses(l2_addr: felt) -> (l1_addr: felt) {
+}
+
 
 //
 // Constructor
@@ -13,18 +45,37 @@ from src.interfaces.IFactsRegistry import IFactsRegistry, StorageSlot
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    name: felt, symbol: felt, to_: felt
+    name: felt,
+    symbol: felt,
+    owner: felt,
+    base_token_uri_len: felt,
+    base_token_uri: felt*,
+    token_uri_suffix: felt,
 ) {
     ERC721.initializer(name, symbol);
-    let to = to_;
-    let token_id: Uint256 = Uint256(1, 0);
-    ERC721._mint(to, token_id);
+    ERC721_Metadata_initializer();
+    Ownable.initializer(owner);
+    ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);
     return ();
 }
 
 //
 // Getters
 //
+
+@view
+func getOwner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (owner: felt) {
+    let (owner) = Ownable.owner();
+    return (owner=owner);
+}
+
+@view
+func supportsInterface{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    interface_id: felt
+) -> (success: felt) {
+    let (success) = ERC165.supports_interface(interface_id);
+    return (success,);
+}
 
 @view
 func name{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (name: felt) {
@@ -55,53 +106,150 @@ func ownerOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 }
 
 @view
-func getApproved{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func tokenURI{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     token_id: Uint256
-) -> (approved: felt) {
-    let (approved: felt) = ERC721.get_approved(token_id);
-    return (approved,);
+) -> (token_uri_len: felt, token_uri: felt*) {
+    let (token_uri_len, token_uri) = ERC721_Metadata_tokenURI(token_id);
+    return (token_uri_len=token_uri_len, token_uri=token_uri);
 }
 
-@view
-func isApprovedForAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt, operator: felt
-) -> (is_approved: felt) {
-    let (is_approved: felt) = ERC721.is_approved_for_all(owner, operator);
-    return (is_approved,);
-}
+
+//
+// Utils
+// 
+
+// func get_last_20_bytes(input: felt) -> felt {
+//     alloc_locals {
+//         let (local temp_array: felt*) = alloc_array(32);
+//         let (local output: felt) = 0;
+
+//         // Split input into an array of 32 felt values (each representing 8 bits)
+//         split_int(input, 32, 256, temp_array);
+
+//         // Take the last 20 felt values of the array
+//         let (local last_20_array: felt*) = temp_array + 12;
+
+//         // Concatenate the last 20 felt values into a single felt value
+//         for i in 0..20 {
+//             output |= last_20_array[i] * (256**(19-i));
+//         }
+
+//         return output;
+//     }
+// }
+
+
 
 //
 // Externals
 //
 
 @external
-func approve{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
-    to: felt, token_id: Uint256
+func setTokenURI{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    base_token_uri_len: felt, base_token_uri: felt*, token_uri_suffix: felt
 ) {
-    ERC721.approve(to, token_id);
+    Ownable.assert_only_owner();
+    ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);
+    return ();
+}
+
+
+@external
+func linkL1wallet{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    message: felt,  public_key: felt,  signature_r: felt, signature_s: felt
+) {
+    let (isValidSignature) = check_ecdsa_signature(message, public_key, signature_r, signature_s);
+    if(isValidSignature == TRUE) {
+
+        let (caller_address: felt) = get_caller_address();
+        alloc_locals;
+        let (keccak_ptr: felt*) = alloc();
+        local keccak_ptr_start: felt* = keccak_ptr;
+
+        with keccak_ptr {
+            cairo_keccak_uint256s(n_elements=1, elements=[public_key]);
+        }
+
+        finalize_keccak(keccak_ptr_start=keccak_ptr_start, keccak_ptr_end=keccak_ptr);
+
+        //let (hashed_public_key: Uint256) = memcpy(src=keccak_ptr, length=32);
+        
+        // let (l1_addr) = get_last_20_bytes(hashed_public_key);
+        // linkedAddresses.write(caller_address, l1_addr);
+    }
+
     return ();
 }
 
 @external
-func setApprovalForAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    operator: felt, approved: felt
+func mint{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+   token_id: Uint256,
+   block_num: felt,
+   account_addr: felt,
+   slot: felt,
+   proof_sizes_bytes_len: felt,
+   proof_sizes_bytes: felt,
+   proof_sizes_words_len: felt,
+   proof_sizes_words: felt,
+   proofs_concat_len: felt,
+   proofs_concat: felt
 ) {
-    ERC721.set_approval_for_all(operator, approved);
+
+    let (value) = IFactsRegistry.get_storage_uint(
+        contract_address=FACTS_REGISTRY_ADDRESS,
+        block=block_num,
+        account_160=account_addr,
+        slot=slot,
+        proof_sizes_bytes_len=proof_sizes_bytes_len,
+        proof_sizes_bytes=proof_sizes_bytes,
+        proof_sizes_words_len=proof_sizes_words_len,
+        proof_sizes_words=proof_sizes_words,
+        proofs_concat_len=proofs_concat_len,
+        proofs_concat=proofs_concat
+    );
+    // parse the value and check hash(value, l2) == hash(l1, l2) (which will be a function param) 
+    let (caller_address: felt) = get_caller_address();
+    //let (value_arr) = uint256_to_bytes_array(value);
+    //let (l1_proof_addr) = value_arr[12..32];
+    //if(l1_proof_addr == linkedAddresses.read(l2_addr=caller_address) {
+      //  ERC721._mint(caller_address, Uint256(token_id, 0));
+    //}
     return ();
 }
 
 @external
-func transferFrom{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
-    _from: felt, to: felt, token_id: Uint256
+func burn{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    token_id: Uint256,
+    block_num: felt,
+    account_addr: felt,
+    slot: felt,
+    proof_sizes_bytes_len: felt,
+    proof_sizes_bytes: felt,
+    proof_sizes_words_len: felt,
+    proof_sizes_words: felt,
+    proofs_concat_len: felt,
+    proofs_concat: felt
+    
 ) {
-    ERC721.transfer_from(_from, to, token_id);
-    return ();
-}
-
-@external
-func safeTransferFrom{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
-    _from: felt, to: felt, token_id: Uint256, data_len: felt, data: felt*
-) {
-    ERC721.safe_transfer_from(_from, to, token_id, data_len, data);
+    let (value) = IFactsRegistry.get_storage_uint(
+        contract_address=FACTS_REGISTRY_ADDRESS,
+        block=block_num,
+        account_160=account_addr,
+        slot=slot,
+        proof_sizes_bytes_len=proof_sizes_bytes_len,
+        proof_sizes_bytes=proof_sizes_bytes,
+        proof_sizes_words_len=proof_sizes_words_len,
+        proof_sizes_words=proof_sizes_words,
+        proofs_concat_len=proofs_concat_len,
+        proofs_concat=proofs_concat
+    );
+    // parse the value and check hash(value, l2) == hash(l1, l2) (which will be a function param) 
+    let (caller_address: felt) = get_caller_address();
+    //let (value_arr) = uint256_to_bytes_array(value);
+    //let (l1_proof_addr) = value_arr[12..32];
+    let (owner: felt) = ERC721.owner_of(token_id);
+    //if(owner == caller_address && l1_proof_addr == linkedAddresses.read(l2_addr=caller_address)) {
+    //    ERC721._burn(token_id);
+    //}
     return ();
 }
