@@ -45,16 +45,12 @@ func linkedAddresses(l2_addr: felt) -> (l1_addr: felt) {
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt,
-    base_token_uri_len: felt,
-    base_token_uri: felt*,
-    token_uri_suffix: felt,
 ) {
     // everai_mirror | EAM
-    ERC721.initializer('8038686286754104022689918381938', '4538701');
+    ERC721.initializer('everai_mirror', 'EAM');
     ERC721_Metadata_initializer();
-    Ownable.initializer(owner);
-    ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);
+   // Ownable.initializer('0x038583B8B69dCa8322b559eC21Af8D0Ca44Fb6E22Fc5F96541ff42F02D79a8DB');
+    //ERC721_Metadata_setBaseTokenURI(53, 105,112,102,115,58,47,47,81,109,80,114,90,90,56,105,121,121,89,72,86,87,111,74,100,77,116,81,53,104,80,68,113,70,114,54,111,72,72,49,69,116,88,104,106,78,55,50,98,107,100,88,105,99, 105,112,102,115,58,47,47,81,109,80,114,90,90,56,105,121,121,89,72,86,87,111,74,100,77,116,81,53,104,80,68,113,70,114,54,111,72,72,49,69,116,88,104,106,78,55,50,98,107,100,88,105,99);
     return ();
 }
 
@@ -182,7 +178,7 @@ func linkL1wallet{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_pt
 
 @external
 func mint{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
-   token_id: Uint256,
+   token_id: felt,
    block_num: felt,
    account_addr: felt,
    slot: StorageSlot,
@@ -194,24 +190,24 @@ func mint{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
    proofs_concat: felt*
 ) {
 
-    let (value) = IFactsRegistry.get_storage_uint(
-        contract_address=FACTS_REGISTRY_ADDRESS,
-        block=block_num,
-        account_160=account_addr,
-        slot=slot,
-        proof_sizes_bytes_len=proof_sizes_bytes_len,
-        proof_sizes_bytes=proof_sizes_bytes,
-        proof_sizes_words_len=proof_sizes_words_len,
-        proof_sizes_words=proof_sizes_words,
-        proofs_concat_len=proofs_concat_len,
-        proofs_concat=proofs_concat
-    );
+    // let (value) = IFactsRegistry.get_storage_uint(
+    //     contract_address=FACTS_REGISTRY_ADDRESS,
+    //     block=block_num,
+    //     account_160=account_addr,
+    //     slot=slot,
+    //     proof_sizes_bytes_len=proof_sizes_bytes_len,
+    //     proof_sizes_bytes=proof_sizes_bytes,
+    //     proof_sizes_words_len=proof_sizes_words_len,
+    //     proof_sizes_words=proof_sizes_words,
+    //     proofs_concat_len=proofs_concat_len,
+    //     proofs_concat=proofs_concat
+    // );
     // parse the value and check hash(value, l2) == hash(l1, l2) (which will be a function param) 
     let (caller_address: felt) = get_caller_address();
     //let (value_arr) = uint256_to_bytes_array(value);
     //let (l1_proof_addr) = value_arr[12..32];
     //if(l1_proof_addr == linkedAddresses.read(l2_addr=caller_address) {
-      //  ERC721._mint(caller_address, Uint256(token_id, 0));
+    ERC721._mint(caller_address, Uint256(token_id, 0));
     //}
     return ();
 }

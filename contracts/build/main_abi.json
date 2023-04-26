@@ -116,24 +116,7 @@
         "type": "event"
     },
     {
-        "inputs": [
-            {
-                "name": "owner",
-                "type": "felt"
-            },
-            {
-                "name": "base_token_uri_len",
-                "type": "felt"
-            },
-            {
-                "name": "base_token_uri",
-                "type": "felt*"
-            },
-            {
-                "name": "token_uri_suffix",
-                "type": "felt"
-            }
-        ],
+        "inputs": [],
         "name": "constructor",
         "outputs": [],
         "type": "constructor"
@@ -292,7 +275,7 @@
         "inputs": [
             {
                 "name": "token_id",
-                "type": "Uint256"
+                "type": "felt"
             },
             {
                 "name": "block_num",
