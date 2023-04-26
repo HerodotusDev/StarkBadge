@@ -183,7 +183,7 @@ export const starknetVerify = async (address: string, slot: string, blockNum: nu
   const ethProof = await ethGetProof(address, [slot], blockNum)
   const rawProof = ethProof.storageProof[0].proof;
   const proof = rawProof.map((leaf: any) => Data.fromHex(leaf).toInts());
-
+ 
   const flatProofByteLengths: number[] = [];
   const flatProofWordLengths: number[] = [];
   let flatProofValues: BigNumber[] = [];
@@ -210,5 +210,11 @@ export const starknetVerify = async (address: string, slot: string, blockNum: nu
     ...flatProofValues.map((value) => value.toHexString()),
   ]
 
-  return calldata
+  console.log(calldata)
+
+  const output = {
+    proof_sizes_bytes : flatProofByteLengths.map((length) => "0x" + length.toString(16)), proof_sizes_words: flatProofWordLengths.map((length) => "0x" + length.toString(16)), proofs_concat: flatProofValues.map((value) => value.toHexString()),
+  }
+
+  return output
 }

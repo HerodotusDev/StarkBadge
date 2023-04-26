@@ -29,7 +29,18 @@ console.log(address,token_id)
   await herodotusProof(contract_data.address, proofOwnership?.blockNum )
   
   // after passing herodotus validation, we can get proof from ethereum and starknetverify it. Why? we need this for get_storage_uint for factregistery
-  const calldata = await starknetVerify(contract_data.address, proofOwnership?.slot, proofOwnership?.blockNum)
+  const output = await starknetVerify(contract_data.address, proofOwnership?.slot, proofOwnership?.blockNum)
+  //  token_id: Uint256,
+  //  block_num: felt,
+  //  account_addr: felt,
+  //  slot: felt,
+  //  proof_sizes_bytes_len: felt,
+  //  proof_sizes_bytes: felt,
+  //  proof_sizes_words_len: felt,
+  //  proof_sizes_words: felt,
+  //  proofs_concat_len: felt,
+  //  proofs_concat: felt
+  const calldata = [token_id,proofOwnership?.blockNum,address, proofOwnership?.slot, output.proof_sizes_bytes, output.proof_sizes_words, output.proofs_concat  ]
   const result = {calldata, block_number: proofOwnership?.blockNum}
   return res.status(200).json(result)
 }

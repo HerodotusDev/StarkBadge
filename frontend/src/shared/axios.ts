@@ -16,7 +16,6 @@ export const handleGenerateProof = async (address:string, selectedTokenId:number
     json_original[selectedTokenId] =  [{"block_number":res.data.block_number ,"calldata": res.data.calldata,"metadata": `${metadata_endpoint}${selectedTokenId}`}]
 
    }
-  
     localStorage.setItem("proofs",JSON.stringify( json_original ));
     return res.data
   };

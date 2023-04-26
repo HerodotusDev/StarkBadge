@@ -31,15 +31,23 @@ import { MintNFT } from "@/components/MintNFT";
 import { handleGenerateProof, handleOwnedNFTs } from "@/shared/axios";
 import { factoryABI } from "@/shared/factoryAbi";
 import Link from "next/link";
+import { recoverPublicKey } from "viem";
 
 const inter = Inter({ subsets: ["latin"] });
+
+type selectedTokenProveType = {
+  block_number: number;
+  calldata: any[];
+  metadata: string;
+};
 
 export default function Home() {
   const { address, isConnected } = useAccount();
   const [ownednfts, setOwnedNfts] = useState<any[]>();
   const [selectedTokenId, setSelectedTokenId] = useState<number>();
   const [selectedBlockNumber, setSelectedBlockNumber] = useState<number>();
-  const [selectedTokenProves, setSelectedTokenProves] = useState<[]>();
+  const [selectedTokenProves, setSelectedTokenProves] =
+    useState<selectedTokenProveType[]>();
   const [stepStatus, setStepStatus] = useState<number>(1);
   const [isMapping, setIsMapping] = useState(false);
   const [isLoadingProof, setIsLoadingProof] = useState<boolean>(false);
@@ -69,13 +77,60 @@ export default function Home() {
 
   // ------------------ end contract write ------------------
 
+  const handleClaiming = async () => {
+    // console.log(
+    //   selectedTokenProves?.filter(
+    //     (ele) => ele?.block_number == selectedBlockNumber
+    //   )
+    // );
+    const claimNFT =
+      selectedTokenProves?.filter(
+        (ele) => ele?.block_number == selectedBlockNumber
+      ) || [];
+    const calldata_raw = claimNFT[0].calldata;
+    const calldata_final = [
+      selectedTokenId,
+      selectedBlockNumber,
+      address,
+      calldata_raw[2],
+      calldata_raw[3],
+      calldata_raw[4],
+      calldata_raw[5],
+    ];
+    console.log(calldata_final);
+    // const result = {
+    //   token_id: selectedTokenId,
+    //   block_num: selectedBlockNumber,
+    //   account_addr: address,
+    //   slot: calldata[2],
+    //   proof_sizes_bytes: calldata[3],
+    //   proof_sizes_words: calldata[4],
+    //   proofs_concat: calldata[5],
+    // };
+    // console.log(result);
+    // setSelectedBlockNumber(block_number);
+  };
+
   const claimNFT = async () => {
     console.log(ReflectContract, selectedTokenProves, "dagewgewwggwe");
 
-    const res = await REFLECTION_CONTRACT.invoke("mint_coupon", [
-      ReflectContract,
-      selectedTokenProves,
-    ]);
+    // const result = {
+    //   token_id: selectedTokenId,
+    //   block_num: selectedBlockNumber,
+    //   account_addr: address,
+    //   slot: felt,
+    //   proof_sizes_bytes_len: felt,
+    //   proof_sizes_bytes: felt,
+    //   proof_sizes_words_len: felt,
+    //   proof_sizes_words: felt,
+    //   proofs_concat_len: felt,
+    //   proofs_concat: felt,
+    // };
+
+    // const res = await REFLECTION_CONTRACT.invoke("mint_coupon", [
+    //   ReflectContract,
+    //   selectedTokenProves,
+    // ]);
   };
 
   // -------------------------------STARKNET END-----------------------------------------------
@@ -89,13 +144,34 @@ export default function Home() {
     const r = signatureBuffer.slice(0, 32).toString("hex");
     const s = signatureBuffer.slice(32, 64).toString("hex");
 
-    console.log({ r, s, v });
-    console.log(data, "message");
+    const public_key = await recoverPublicKey({
+      hash: "0xd9eba16ed0ecae432b71fe008c98cc872bb4cc214d3220a36f365326cf807d68",
+      signature:
+        "0x66edc32e2ab001213321ab7d959a2207fcef5190cc9abb6da5b0d2a8a9af2d4d2b0700e2c317c4106f337fd934fbbb0bf62efc8811a78603b33a8265d3b8f8cb1c",
+    });
+
+    console.log({
+      message: data,
+      public_key: public_key,
+      signature_r: r,
+      signature_s: s,
+    });
+
+    // const res = await REFLECTION_CONTRACT.invoke("linkL1wallet", [
+    //   data,
+    //   public_key,
+    //   r,
+    //   s,
+    // ]);
+
+    // console.log({ r, s, v });
+    // console.log(data, "message");
 
     localStorage.setItem(
       "mapping_L1_L2",
       JSON.stringify({ L1: address, L2: starknetAccount?.address })
     );
+
     setIsMapping(true);
   };
 
@@ -138,10 +214,6 @@ export default function Home() {
     await handleGenerateProof(address as string, selectedTokenId as number);
     await updateProofsStates(selectedTokenId as number);
     setIsLoadingProof(false);
-  };
-
-  const handleClaiming = async (block_number: any) => {
-    setSelectedBlockNumber(block_number);
   };
 
   // -------------------------------USE EFFECTS------------------------------------------------
@@ -275,14 +347,14 @@ export default function Home() {
                     }>
                     {selectedTokenProves?.map((prove: any) => (
                       <div
-                        key={prove.calldata[0]}
+                        key={prove.calldata[1]}
                         className={
                           parseInt(prove.block_number) === selectedBlockNumber
                             ? styles.selectedBlockNumber
                             : styles.unselectedBlockNumber
                         }
-                        onClick={async () =>
-                          await handleClaiming(prove.block_number as number)
+                        onClick={() =>
+                          setSelectedBlockNumber(prove.block_number as number)
                         }>
                         <div>{prove.block_number}</div>
                       </div>
@@ -300,13 +372,8 @@ export default function Home() {
                       <div>Token Id : {selectedTokenId}</div>
                       <div
                         className={styles.proofbutton}
-                        onClick={async () =>
-                          await handleGenerateProof(
-                            address as string,
-                            selectedTokenId as number
-                          )
-                        }>
-                        Create Reflection Proof of Ownership{" "}
+                        onClick={handleClaiming}>
+                        Create Reflection Proof of Ownership
                       </div>
                     </div>
                   )}
