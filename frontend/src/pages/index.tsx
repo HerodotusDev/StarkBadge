@@ -330,7 +330,7 @@ export default function Home() {
                       <div
                         className={styles.proofbutton}
                         onClick={handleClaiming}>
-                        Create Staradge
+                        Create StarBadge
                       </div>
                     </div>
                   )}
@@ -354,11 +354,11 @@ export default function Home() {
         ) : (
           <>
             <div className={styles.titleWrapper}>
-              <div className={styles.pageTitle}>Staradge</div>
+              <div className={styles.pageTitle}>StarBadge</div>
               <div className={styles.titleDescription}>
                 <Link href={"https://github.com/HerodotusDev/Staradge"}>
                   {" "}
-                  What is Staradge? CLICK HERE
+                  What is StarBadge? CLICK HERE
                 </Link>
               </div>
             </div>
