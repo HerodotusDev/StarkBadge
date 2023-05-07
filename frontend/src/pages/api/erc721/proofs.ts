@@ -76,7 +76,7 @@ export const starknetVerify = async (address: string, slot: string, blockNum: nu
   const slot_from_hex = Data.fromHex(slot)
     .toInts()
     .values.map((value: any) => value.toHexString())
-
+  console.log(slot_from_hex)
   // const calldata = [
   //   BigNumber.from(blockNum).toHexString(),
   //   address,
@@ -92,7 +92,7 @@ export const starknetVerify = async (address: string, slot: string, blockNum: nu
  
 
   const output = {
-    proof_sizes_bytes : flatProofByteLengths.map((length) => "0x" + length.toString(16)), proof_sizes_words: flatProofWordLengths.map((length) => "0x" + length.toString(16)), proofs_concat: flatProofValues.map((value) => value.toHexString()),
+    slot :slot_from_hex, proof_sizes_bytes : flatProofByteLengths.map((length) => "0x" + length.toString(16)), proof_sizes_words: flatProofWordLengths.map((length) => "0x" + length.toString(16)), proofs_concat: flatProofValues.map((value) => value.toHexString()),
   }
 
   return output

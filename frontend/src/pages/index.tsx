@@ -32,6 +32,7 @@ import { handleGenerateProof, handleOwnedNFTs } from "@/shared/axios";
 import { factoryABI } from "@/shared/factoryAbi";
 import Link from "next/link";
 import { recoverPublicKey } from "viem";
+import { staradgeAbi } from "@/shared/staradgeAbi";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -67,8 +68,8 @@ export default function Home() {
   // ------------------ starknet contract write ------------------
   const provider = new Provider({ sequencer: { network: "goerli-alpha" } });
   const REFLECTION_CONTRACT = new Contract(
-    factoryABI,
-    "0x005e7ccdc3677133173038d8cca7ed66236f25ff28b47c36549705337c931291",
+    staradgeAbi,
+    "0x05e315337ca46eda13b1512e4454c23cd9ca89b5930d7e574238f66ab8386e0c",
     provider
   );
   if (starknetAccount !== undefined) {
@@ -89,12 +90,15 @@ export default function Home() {
       selectedTokenId,
       selectedBlockNumber,
       address,
-      calldata_raw[2],
       calldata_raw[3],
       calldata_raw[4],
       calldata_raw[5],
+      calldata_raw[6],
     ];
     console.log(calldata_final);
+
+    const res = await REFLECTION_CONTRACT.invoke("mint", calldata_final);
+    console.log(res, "ddd");
     //  TODO : HAVE TO CONNECT WITH STARKNET CONTRACT
   };
 
@@ -326,7 +330,7 @@ export default function Home() {
                       <div
                         className={styles.proofbutton}
                         onClick={handleClaiming}>
-                        Create Staradge
+                        Create StarBadge
                       </div>
                     </div>
                   )}
@@ -350,11 +354,11 @@ export default function Home() {
         ) : (
           <>
             <div className={styles.titleWrapper}>
-              <div className={styles.pageTitle}>Staradge</div>
+              <div className={styles.pageTitle}>StarBadge</div>
               <div className={styles.titleDescription}>
                 <Link href={"https://github.com/HerodotusDev/Staradge"}>
                   {" "}
-                  What is Staradge? CLICK HERE
+                  What is StarBadge? CLICK HERE
                 </Link>
               </div>
             </div>
