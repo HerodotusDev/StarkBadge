@@ -34,7 +34,7 @@ from token.ERC721.ERC721_Metadata_base import (
 from interfaces.IFactsRegistry import IFactsRegistry, StorageSlot
 
 // Herodotus Facts Registry Contract Address
-const FACTS_REGISTRY_ADDRESS = 1;
+const FACTS_REGISTRY_ADDRESS = 0x0183d02c1eab527004f479bef2709ad213ed5f54204754bbd0013324c5754d5c;
 
 //
 // Storage Variables
