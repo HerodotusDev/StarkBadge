@@ -1,16 +1,24 @@
 %lang starknet
 
-from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
+from starkware.cairo.common.cairo_builtins import (
+    HashBuiltin,
+    SignatureBuiltin,
+    EcOpBuiltin,
+    BitwiseBuiltin,
+)
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.signature import check_ecdsa_signature
 from starkware.starknet.common.syscalls import get_caller_address
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.memcpy import memcpy
-from starkware.cairo.common.cairo_builtins import EcOpBuiltin
 from starkware.cairo.common.bool import FALSE, TRUE
-from starkware.cairo.common.cairo_keccak.keccak import (
-    finalize_keccak,
-    cairo_keccak_uint256s
+from starkware.cairo.common.math import assert_le, unsigned_div_rem, split_felt
+from starkware.cairo.common.pow import pow
+from starkware.cairo.common.alloc import alloc
+
+from starkware.cairo.common.cairo_secp.bigint import BigInt3, uint256_to_bigint
+from starkware.cairo.common.cairo_secp.ec import EcPoint
+from starkware.cairo.common.cairo_secp.signature import (
+    recover_public_key,
+    public_key_point_to_eth_address,
 )
 
 from openzeppelin.token.erc721.library import ERC721
@@ -23,21 +31,18 @@ from token.ERC721.ERC721_Metadata_base import (
     ERC721_Metadata_setBaseTokenURI,
 )
 
-from src.interfaces.IFactsRegistry import IFactsRegistry, StorageSlot
+from interfaces.IFactsRegistry import IFactsRegistry, StorageSlot
 
 // Herodotus Facts Registry Contract Address
 const FACTS_REGISTRY_ADDRESS = 1;
-
 
 //
 // Storage Variables
 //
 
-// Mapping for storing linked L1 and L2 accounts
 @storage_var
 func linkedAddresses(l2_addr: felt) -> (l1_addr: felt) {
 }
-
 
 //
 // Constructor
@@ -45,12 +50,17 @@ func linkedAddresses(l2_addr: felt) -> (l1_addr: felt) {
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    name: felt,
+    symbol: felt,
+    owner: felt,
+    base_token_uri_len: felt,
+    base_token_uri: felt*,
+    token_uri_suffix: felt,
 ) {
-    // everai_mirror | EAM
-    ERC721.initializer('everai_mirror', 'EAM');
+    ERC721.initializer(name, symbol);
     ERC721_Metadata_initializer();
-   // Ownable.initializer('0x038583B8B69dCa8322b559eC21Af8D0Ca44Fb6E22Fc5F96541ff42F02D79a8DB');
-    //ERC721_Metadata_setBaseTokenURI(53, 105,112,102,115,58,47,47,81,109,80,114,90,90,56,105,121,121,89,72,86,87,111,74,100,77,116,81,53,104,80,68,113,70,114,54,111,72,72,49,69,116,88,104,106,78,55,50,98,107,100,88,105,99, 105,112,102,115,58,47,47,81,109,80,114,90,90,56,105,121,121,89,72,86,87,111,74,100,77,116,81,53,104,80,68,113,70,114,54,111,72,72,49,69,116,88,104,106,78,55,50,98,107,100,88,105,99);
+    Ownable.initializer(owner);
+    ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri, token_uri_suffix);
     return ();
 }
 
@@ -108,32 +118,27 @@ func tokenURI{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     return (token_uri_len=token_uri_len, token_uri=token_uri);
 }
 
-
 //
 // Utils
-// 
+//
 
-// func get_last_20_bytes(input: felt) -> felt {
-//     alloc_locals {
-//         let (local temp_array: felt*) = alloc_array(32);
-//         let (local output: felt) = 0;
+func bitshift_left{range_check_ptr}(word: felt, num_bits: felt) -> (shifted: felt) {
+    // verifies word fits in 64bits
+    assert_le(word, 2 ** 64 - 1);
 
-//         // Split input into an array of 32 felt values (each representing 8 bits)
-//         split_int(input, 32, 256, temp_array);
+    // verifies shifted bits are not above 64
+    assert_le(num_bits, 64);
 
-//         // Take the last 20 felt values of the array
-//         let (local last_20_array: felt*) = temp_array + 12;
+    let (multiplicator) = pow(2, num_bits);
+    let k = word * multiplicator;
+    let (q, r) = unsigned_div_rem(k, 2 ** 64);
+    return (r,);
+}
 
-//         // Concatenate the last 20 felt values into a single felt value
-//         for i in 0..20 {
-//             output |= last_20_array[i] * (256**(19-i));
-//         }
-
-//         return output;
-//     }
-// }
-
-
+func felt_to_uint256{range_check_ptr}(x) -> (x_: Uint256) {
+    let split = split_felt(x);
+    return (Uint256(low=split.low, high=split.high),);
+}
 
 //
 // Externals
@@ -148,103 +153,124 @@ func setTokenURI{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr
     return ();
 }
 
-
 @external
-func linkL1wallet{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
-    message: felt,  public_key: felt,  signature_r: felt, signature_s: felt
-) {
-    //let (isValidSignature) = check_ecdsa_signature(message, public_key, signature_r, signature_s);
-    //if(isValidSignature == TRUE) {
+func linkL1wallet{
+    pedersen_ptr: HashBuiltin*,
+    syscall_ptr: felt*,
+    range_check_ptr,
+    ec_op_ptr: EcOpBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+}(message: felt, public_key: felt, signatures_len: felt, signatures: felt*) -> (res: felt) {
+    // what if i pass a signature which has different message than what we sign in the webapp but signed with the right addr?
+    alloc_locals;
 
-        // let (caller_address: felt) = get_caller_address();
-        // alloc_locals;
-        // let (keccak_ptr: felt*) = alloc();
-        // local keccak_ptr_start: felt* = keccak_ptr;
+    let (isValidSignature) = check_ecdsa_signature(
+        message=message, public_key=public_key, signature_r=signatures[0], signature_s=signatures[1]
+    );
 
-        // with keccak_ptr {
-        //     cairo_keccak_uint256s(n_elements=1, elements=[public_key]);
-        // }
+    if (isValidSignature == TRUE) {
+        let (caller_address: felt) = get_caller_address();
 
-        // finalize_keccak(keccak_ptr_start=keccak_ptr_start, keccak_ptr_end=keccak_ptr);
+        let (message_uint256) = felt_to_uint256(message);
+        let (r_uint256) = felt_to_uint256(signatures[0]);
+        let (s_uint256) = felt_to_uint256(signatures[1]);
 
-        //let (hashed_public_key: Uint256) = memcpy(src=keccak_ptr, length=32);
-        
-        // let (l1_addr) = get_last_20_bytes(hashed_public_key);
-        // linkedAddresses.write(caller_address, l1_addr);
-    //}
+        let (msg_hash: BigInt3) = uint256_to_bigint(message_uint256);
+        let (r: BigInt3) = uint256_to_bigint(r_uint256);
+        let (s: BigInt3) = uint256_to_bigint(s_uint256);
 
-    return ();
+        let (public_key_point: EcPoint) = recover_public_key(msg_hash, r, s, signatures[2]);
+
+        let (local keccak_ptr) = alloc();
+        let (eth_address) = public_key_point_to_eth_address{keccak_ptr=keccak_ptr}(
+            public_key_point
+        );
+
+        linkedAddresses.write(caller_address, eth_address);
+        return (res=0);
+    } else {
+        return (res=1);
+    }
 }
 
 @external
 func mint{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
-   token_id: felt,
-   block_num: felt,
-   account_addr: felt,
-   slot: StorageSlot,
-   proof_sizes_bytes_len: felt,
-   proof_sizes_bytes: felt*,
-   proof_sizes_words_len: felt,
-   proof_sizes_words: felt*,
-   proofs_concat_len: felt,
-   proofs_concat: felt*
-) {
+    token_id: felt,
+    block_num: felt,
+    account_addr: felt,
+    slot: StorageSlot,
+    proof_sizes_bytes_len: felt,
+    proof_sizes_bytes: felt*,
+    proof_sizes_words_len: felt,
+    proof_sizes_words: felt*,
+    proofs_concat_len: felt,
+    proofs_concat: felt*,
+) -> (res: felt) {
+    alloc_locals;
+    let (value: Uint256) = IFactsRegistry.get_storage_uint(
+        contract_address=FACTS_REGISTRY_ADDRESS,
+        block=block_num,
+        account_160=account_addr,
+        slot=slot,
+        proof_sizes_bytes_len=proof_sizes_bytes_len,
+        proof_sizes_bytes=proof_sizes_bytes,
+        proof_sizes_words_len=proof_sizes_words_len,
+        proof_sizes_words=proof_sizes_words,
+        proofs_concat_len=proofs_concat_len,
+        proofs_concat=proofs_concat,
+    );
+    let (caller_address) = get_caller_address();
 
-    // let (value) = IFactsRegistry.get_storage_uint(
-    //     contract_address=FACTS_REGISTRY_ADDRESS,
-    //     block=block_num,
-    //     account_160=account_addr,
-    //     slot=slot,
-    //     proof_sizes_bytes_len=proof_sizes_bytes_len,
-    //     proof_sizes_bytes=proof_sizes_bytes,
-    //     proof_sizes_words_len=proof_sizes_words_len,
-    //     proof_sizes_words=proof_sizes_words,
-    //     proofs_concat_len=proofs_concat_len,
-    //     proofs_concat=proofs_concat
-    // );
-    // parse the value and check hash(value, l2) == hash(l1, l2) (which will be a function param) 
-    let (caller_address: felt) = get_caller_address();
-    //let (value_arr) = uint256_to_bytes_array(value);
-    //let (l1_proof_addr) = value_arr[12..32];
-    //if(l1_proof_addr == linkedAddresses.read(l2_addr=caller_address) {
-    ERC721._mint(caller_address, Uint256(token_id, 0));
-    //}
-    return ();
+    let (high_last4bytes) = bitshift_left(value.high, 96);
+
+    let (l1_proof_addr) = high_last4bytes + value.low;
+
+    let (linkedL1Account) = linkedAddresses.read(l2_addr=caller_address);
+
+    if (l1_proof_addr == linkedL1Account) {
+        ERC721._mint(caller_address, Uint256(token_id, 0));
+        return (res=0);
+    }
+    return (res=1);
 }
 
-// @external
-// func burn{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
-//     token_id: Uint256,
-//     block_num: felt,
-//     account_addr: felt,
-//     slot: felt,
-//     proof_sizes_bytes_len: felt,
-//     proof_sizes_bytes: felt,
-//     proof_sizes_words_len: felt,
-//     proof_sizes_words: felt,
-//     proofs_concat_len: felt,
-//     proofs_concat: felt
-    
-// ) {
-//     let (value) = IFactsRegistry.get_storage_uint(
-//         contract_address=FACTS_REGISTRY_ADDRESS,
-//         block=block_num,
-//         account_160=account_addr,
-//         slot=slot,
-//         proof_sizes_bytes_len=proof_sizes_bytes_len,
-//         proof_sizes_bytes=proof_sizes_bytes,
-//         proof_sizes_words_len=proof_sizes_words_len,
-//         proof_sizes_words=proof_sizes_words,
-//         proofs_concat_len=proofs_concat_len,
-//         proofs_concat=proofs_concat
-//     );
-//     // parse the value and check hash(value, l2) == hash(l1, l2) (which will be a function param) 
-//     let (caller_address: felt) = get_caller_address();
-//     //let (value_arr) = uint256_to_bytes_array(value);
-//     //let (l1_proof_addr) = value_arr[12..32];
-//     let (owner: felt) = ERC721.owner_of(token_id);
-//     //if(owner == caller_address && l1_proof_addr == linkedAddresses.read(l2_addr=caller_address)) {
-//     //    ERC721._burn(token_id);
-//     //}
-//     return ();
-// }
+@external
+func burn{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    token_id: Uint256,
+    block_num: felt,
+    account_addr: felt,
+    slot: StorageSlot,
+    proof_sizes_bytes_len: felt,
+    proof_sizes_bytes: felt*,
+    proof_sizes_words_len: felt,
+    proof_sizes_words: felt*,
+    proofs_concat_len: felt,
+    proofs_concat: felt*,
+) -> (res: felt) {
+    alloc_locals;
+    let (value) = IFactsRegistry.get_storage_uint(
+        contract_address=FACTS_REGISTRY_ADDRESS,
+        block=block_num,
+        account_160=account_addr,
+        slot=slot,
+        proof_sizes_bytes_len=proof_sizes_bytes_len,
+        proof_sizes_bytes=proof_sizes_bytes,
+        proof_sizes_words_len=proof_sizes_words_len,
+        proof_sizes_words=proof_sizes_words,
+        proofs_concat_len=proofs_concat_len,
+        proofs_concat=proofs_concat,
+    );
+    let (caller_address: felt) = get_caller_address();
+
+    let (high_last4bytes) = bitshift_left(value.high, 96);
+    let (l1_proof_addr) = high_last4bytes + value.low;
+
+    let (linkedL1Account) = linkedAddresses.read(l2_addr=caller_address);
+
+    let (owner: felt) = ERC721.owner_of(token_id);
+    if (owner == caller_address and l1_proof_addr == linkedL1Account) {
+        ERC721._burn(token_id);
+        return (res=0);
+    }
+    return (res=1);
+}
