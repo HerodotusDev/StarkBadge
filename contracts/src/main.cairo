@@ -263,7 +263,7 @@ func burn{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
     let (caller_address: felt) = get_caller_address();
 
     let (high_last4bytes) = bitshift_left(value.high, 96);
-    let (l1_proof_addr) = high_last4bytes + value.low;
+    let l1_proof_addr = high_last4bytes + value.low;
 
     let (linkedL1Account) = linkedAddresses.read(l2_addr=caller_address);
 
