@@ -1,5 +1,5 @@
 [project]
-protostar-version = "0.9.4"
+protostar-version = "0.10.0"
 lib-path = "lib/cairo_coantracts/src"
 cairo-path = ["lib/cairo-conatracts/src"]
 
@@ -9,4 +9,4 @@ main = ["src/main.cairo"]
 [profile.testnet.project]
 network="testnet"
 private-key-path = "./.env"
-account-address="0x05E1A58D0Bcc9D0bF93F0b89Ed4228136E1F3e50bf9031B1ff5463a67778BEd5"
+account-address="0x038583B8B69dCa8322b559eC21Af8D0Ca44Fb6E22Fc5F96541ff42F02D79a8DB"
