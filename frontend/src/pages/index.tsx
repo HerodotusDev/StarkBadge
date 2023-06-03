@@ -99,7 +99,6 @@ export default function Home() {
 
     const res = await REFLECTION_CONTRACT.invoke("mint", calldata_final);
     console.log(res, "ddd");
-    //  TODO : HAVE TO CONNECT WITH STARKNET CONTRACT
   };
 
   // -------------------------------STARKNET END-----------------------------------------------
@@ -330,7 +329,7 @@ export default function Home() {
                       <div
                         className={styles.proofbutton}
                         onClick={handleClaiming}>
-                        Create StarBadge
+                        Create StarkBadge
                       </div>
                     </div>
                   )}
@@ -354,7 +353,7 @@ export default function Home() {
         ) : (
           <>
             <div className={styles.titleWrapper}>
-              <div className={styles.pageTitle}>StarBadge</div>
+              <div className={styles.pageTitle}>StarkBadge</div>
               <div className={styles.titleDescription}>
                 <Link href={"https://github.com/HerodotusDev/Staradge"}>
                   {" "}

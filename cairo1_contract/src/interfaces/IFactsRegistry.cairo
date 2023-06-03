@@ -22,7 +22,7 @@ trait IFactRegistery {
         proof_sizes_words: felt252,
         proofs_concat_len: felt252,
         proofs_concat: felt252,
-    ) -> felt252;
+    ) -> (felt252, felt252, felt252);
     fn get_storage_uint(
         block: felt252,
         account_160: felt252,
