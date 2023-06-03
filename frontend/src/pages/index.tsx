@@ -355,7 +355,7 @@ export default function Home() {
             <div className={styles.titleWrapper}>
               <div className={styles.pageTitle}>StarkBadge</div>
               <div className={styles.titleDescription}>
-                <Link href={"https://github.com/HerodotusDev/Staradge"}>
+                <Link href={"https://github.com/HerodotusDev/StarkBadge"}>
                   {" "}
                   What is StarBadge? CLICK HERE
                 </Link>
