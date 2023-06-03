@@ -1,4 +1,4 @@
-# Its StarkBadge ; Star-(k-B)-adge
+# StarkBadge
 
 # ! UNDER DEVELOPMENT !
 
